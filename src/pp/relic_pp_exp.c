@@ -46,8 +46,9 @@
  */
 static void pp_exp_bn(fp12_t c, fp12_t a) {
 	fp12_t t0, t1, t2, t3;
-	int l = RLC_TERMS + 1, b[RLC_TERMS + 1];
 	bn_t x;
+	const int *b;
+	int l;
 
 	fp12_null(t0);
 	fp12_null(t1);
@@ -66,8 +67,8 @@ static void pp_exp_bn(fp12_t c, fp12_t a) {
 		 * New final exponentiation following Fuentes-Castañeda, Knapp and
 		 * Rodríguez-Henríquez: Fast Hashing to G_2.
 		 */
-		fp_param_get_var(x);
-		fp_param_get_sps(b, &l);
+		fp_prime_get_par(x);
+		b = fp_prime_get_par_sps(&l);
 
 		/* First, compute m = f^(p^6 - 1)(p^2 + 1). */
 		fp12_conv_cyc(c, a);
@@ -133,7 +134,8 @@ static void pp_exp_bn(fp12_t c, fp12_t a) {
 static void pp_exp_b12(fp12_t c, fp12_t a) {
 	fp12_t t0, t1, t2, t3;
 	bn_t x;
-	int l = RLC_TERMS + 1, b[RLC_TERMS + 1];
+	const int *b;
+	int l;
 
 	fp12_null(t0);
 	fp12_null(t1);
@@ -152,8 +154,8 @@ static void pp_exp_b12(fp12_t c, fp12_t a) {
 		 * Final exponentiation following Ghammam and Fouotsa:
 		 * On the Computation of Optimal Ate Pairing at the 192-bit Level.
 		 */
-		fp_param_get_var(x);
-		fp_param_get_sps(b, &l);
+		fp_prime_get_par(x);
+		b = fp_prime_get_par_sps(&l);
 
 		/* First, compute m^(p^6 - 1)(p^2 + 1). */
 		fp12_conv_cyc(c, a);
@@ -258,18 +260,11 @@ void pp_exp_k2(fp2_t c, fp2_t a) {
 }
 
 void pp_exp_k12(fp12_t c, fp12_t a) {
-	switch (ep_param_get()) {
-		case BN_P158:
-		case BN_P254:
-		case BN_P256:
-		case BN_P382:
-		case BN_P446:
-		case BN_P638:
+	switch (ep_curve_is_pairf()) {
+		case EP_BN:
 			pp_exp_bn(c, a);
 			break;
-		case B12_P381:
-		case B12_P455:
-		case B12_P638:
+		case EP_B12:
 			pp_exp_b12(c, a);
 			break;
 	}

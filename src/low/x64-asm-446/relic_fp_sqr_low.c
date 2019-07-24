@@ -24,33 +24,25 @@
 /**
  * @file
  *
- * Implementation of the low-level multiple precision addition and subtraction
- * functions.
+ * Implementation of low-level prime field squaring functions.
  *
- * @ingroup bn
+ * @version $Id: relic_fp_sqr_low.c 677 2011-03-05 22:19:43Z dfaranha $
+ * @ingroup fp
  */
 
 #include <gmp.h>
 
-#include "relic_bn.h"
-#include "relic_bn_low.h"
+#include "relic_fp.h"
+#include "relic_fp_low.h"
 
 /*============================================================================*/
 /* Public definitions                                                         */
 /*============================================================================*/
 
-dig_t bn_add1_low(dig_t *c, const dig_t *a, dig_t digit, int size) {
-	return mpn_add_1(c, a, size, digit);
+void fp_sqrn_low(dig_t *c, const dig_t *a) {
+	fp_muln_low(c, a, a);
 }
 
-dig_t bn_addn_low(dig_t *c, const dig_t *a, const dig_t *b, int size) {
-	return mpn_add_n(c, a, b, size);
-}
-
-dig_t bn_sub1_low(dig_t *c, const dig_t *a, dig_t digit, int size) {
-	return mpn_sub_1(c, a, size, digit);
-}
-
-dig_t bn_subn_low(dig_t *c, const dig_t *a, const dig_t *b, int size) {
-	return mpn_sub_n(c, a, b, size);
+void fp_sqrm_low(dig_t *c, const dig_t *a) {
+	fp_mulm_low(c, a, a);
 }

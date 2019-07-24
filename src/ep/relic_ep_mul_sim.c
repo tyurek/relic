@@ -191,7 +191,12 @@ static void ep_mul_sim_endom(ep_t r, const ep_t p, const bn_t k, const ep_t q,
 			n = *t1;
 			if (n > 0) {
 				ep_copy(u, t[n / 2]);
-				fp_mul(u->x, u->x, ep_curve_get_beta());
+				if (ep_curve_opt_a() == RLC_ZERO) {
+					fp_mul(u->x, u->x, ep_curve_get_beta());
+				} else {
+					fp_neg(u->x, u->x);
+					fp_mul(u->y, u->y, ep_curve_get_beta());
+				}
 				if (sk1 == RLC_NEG) {
 					ep_neg(u, u);
 				}
@@ -199,7 +204,12 @@ static void ep_mul_sim_endom(ep_t r, const ep_t p, const bn_t k, const ep_t q,
 			}
 			if (n < 0) {
 				ep_copy(u, t[-n / 2]);
-				fp_mul(u->x, u->x, ep_curve_get_beta());
+				if (ep_curve_opt_a() == RLC_ZERO) {
+					fp_mul(u->x, u->x, ep_curve_get_beta());
+				} else {
+					fp_neg(u->x, u->x);
+					fp_mul(u->y, u->y, ep_curve_get_beta());
+				}
 				if (sk1 == RLC_NEG) {
 					ep_neg(u, u);
 				}
@@ -224,7 +234,12 @@ static void ep_mul_sim_endom(ep_t r, const ep_t p, const bn_t k, const ep_t q,
 			n = *t3;
 			if (n > 0) {
 				ep_copy(u, tab1[n / 2]);
-				fp_mul(u->x, u->x, ep_curve_get_beta());
+				if (ep_curve_opt_a() == RLC_ZERO) {
+					fp_mul(u->x, u->x, ep_curve_get_beta());
+				} else {
+					fp_neg(u->x, u->x);
+					fp_mul(u->y, u->y, ep_curve_get_beta());
+				}
 				if (sl1 == RLC_NEG) {
 					ep_neg(u, u);
 				}
@@ -232,7 +247,12 @@ static void ep_mul_sim_endom(ep_t r, const ep_t p, const bn_t k, const ep_t q,
 			}
 			if (n < 0) {
 				ep_copy(u, tab1[-n / 2]);
-				fp_mul(u->x, u->x, ep_curve_get_beta());
+				if (ep_curve_opt_a() == RLC_ZERO) {
+					fp_mul(u->x, u->x, ep_curve_get_beta());
+				} else {
+					fp_neg(u->x, u->x);
+					fp_mul(u->y, u->y, ep_curve_get_beta());
+				}
 				if (sl1 == RLC_NEG) {
 					ep_neg(u, u);
 				}
@@ -420,7 +440,8 @@ void ep_mul_sim_trick(ep_t r, const ep_t p, const bn_t k, const ep_t q,
 	ep_t t0[1 << (EP_WIDTH / 2)], t1[1 << (EP_WIDTH / 2)], t[1 << EP_WIDTH];
 	bn_t n;
 	int l0, l1, w = EP_WIDTH / 2;
-	uint8_t w0[RLC_CEIL(RLC_FP_BITS + 1, w)], w1[RLC_CEIL(RLC_FP_BITS + 1, w)];
+	uint8_t* w0 = RLC_ALLOCA(uint8_t, RLC_CEIL(RLC_FP_BITS + 1, w)),
+        * w1 = RLC_ALLOCA(uint8_t, RLC_CEIL(RLC_FP_BITS + 1, w));
 
 	bn_null(n);
 
@@ -463,7 +484,7 @@ void ep_mul_sim_trick(ep_t r, const ep_t p, const bn_t k, const ep_t q,
 		if (bn_sign(m) == RLC_NEG) {
 			ep_neg(t1[1], t1[1]);
 		}
-		for (int i = 1; i < (1 << w); i++) {
+		for (int i = 2; i < (1 << w); i++) {
 			ep_add(t1[i], t1[i - 1], t1[1]);
 		}
 
@@ -473,14 +494,13 @@ void ep_mul_sim_trick(ep_t r, const ep_t p, const bn_t k, const ep_t q,
 			}
 		}
 
-#if defined(EP_MIXED)
-		ep_norm_sim(t + 1, (const ep_t *)t + 1, (1 << (EP_WIDTH)) - 1);
+#if EP_WIDTH > 2 && defined(EP_MIXED)
+		ep_norm_sim(t + 1, (const ep_t *)(t + 1), (1 << EP_WIDTH) - 1);
 #endif
 
-		l0 = l1 = RLC_CEIL(RLC_FP_BITS, w);
+		l0 = l1 = RLC_CEIL(RLC_FP_BITS + 1, w);
 		bn_rec_win(w0, &l0, k, w);
 		bn_rec_win(w1, &l1, m, w);
-
 		for (int i = l0; i < l1; i++) {
 			w0[i] = 0;
 		}
@@ -664,5 +684,39 @@ void ep_mul_sim_gen(ep_t r, const bn_t k, const ep_t q, const bn_t m) {
 	}
 	FINALLY {
 		ep_free(g);
+	}
+}
+
+void ep_mul_sim_dig(ep_t r, const ep_t p[], dig_t k[], int len) {
+	ep_t t;
+	int max;
+
+	ep_null(t);
+
+	max = util_bits_dig(k[0]);
+	for (int i = 1; i < len; i++) {
+		max = RLC_MAX(max, util_bits_dig(k[i]));
+	}
+
+	TRY {
+		ep_new(t);
+
+		ep_set_infty(t);
+		for (int i = max - 1; i >= 0; i--) {
+			ep_dbl(t, t);
+			for (int j = 0; j < len; j++) {
+				if (k[j] & ((dig_t)1 << i)) {
+					ep_add(t, t, p[j]);
+				}
+			}
+		}
+
+		ep_norm(r, t);
+	}
+	CATCH_ANY {
+		THROW(ERR_CAUGHT);
+	}
+	FINALLY {
+		ep_free(t);
 	}
 }

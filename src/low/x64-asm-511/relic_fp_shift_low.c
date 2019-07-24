@@ -24,40 +24,37 @@
 /**
  * @file
  *
- * Implementation of the low-level multiple precision bit shifting functions.
+ * Implementation of the low-level prime field shifting functions.
  *
  * @ingroup bn
  */
 
 #include <gmp.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 
-#include "relic_bn.h"
-#include "relic_bn_low.h"
+#include "relic_fp.h"
+#include "relic_fp_low.h"
 
 /*============================================================================*/
 /* Public definitions                                                         */
 /*============================================================================*/
 
-dig_t bn_lsh1_low(dig_t *c, const dig_t *a, int size) {
-	return mpn_lshift(c, a, size, 1);
+dig_t fp_lsh1_low(dig_t *c, const dig_t *a) {
+	return mpn_lshift(c, a, RLC_FP_DIGS, 1);
 }
 
-dig_t bn_lshb_low(dig_t *c, const dig_t *a, int size, int bits) {
-	return mpn_lshift(c, a, size, bits);
+dig_t fp_lshb_low(dig_t *c, const dig_t *a, int bits) {
+	return mpn_lshift(c, a, RLC_FP_DIGS, bits);
 }
 
-void bn_lshd_low(dig_t *c, const dig_t *a, int size, int digits) {
+void fp_lshd_low(dig_t *c, const dig_t *a, int digits) {
 	dig_t *top;
 	const dig_t *bot;
 	int i;
 
-	top = c + size + digits - 1;
-	bot = a + size - 1;
+	top = c + RLC_FP_DIGS - 1;
+	bot = a + RLC_FP_DIGS - 1 - digits;
 
-	for (i = 0; i < size; i++, top--, bot--) {
+	for (i = 0; i < RLC_FP_DIGS - digits; i++, top--, bot--) {
 		*top = *bot;
 	}
 	for (i = 0; i < digits; i++, c++) {
@@ -65,15 +62,11 @@ void bn_lshd_low(dig_t *c, const dig_t *a, int size, int digits) {
 	}
 }
 
-dig_t bn_rsh1_low(dig_t *c, const dig_t *a, int size) {
-	return mpn_rshift(c, a, size, 1);
+dig_t fp_rshb_low(dig_t *c, const dig_t *a, int bits) {
+	return mpn_rshift(c, a, RLC_FP_DIGS, bits);
 }
 
-dig_t bn_rshb_low(dig_t *c, const dig_t *a, int size, int bits) {
-	return mpn_rshift(c, a, size, bits);
-}
-
-void bn_rshd_low(dig_t *c, const dig_t *a, int size, int digits) {
+void fp_rshd_low(dig_t *c, const dig_t *a, int digits) {
 	const dig_t *top;
 	dig_t *bot;
 	int i;
@@ -81,7 +74,10 @@ void bn_rshd_low(dig_t *c, const dig_t *a, int size, int digits) {
 	top = a + digits;
 	bot = c;
 
-	for (i = 0; i < size - digits; i++, top++, bot++) {
+	for (i = 0; i < RLC_FP_DIGS - digits; i++, top++, bot++) {
 		*bot = *top;
+	}
+	for (; i < RLC_FP_DIGS; i++, bot++) {
+		*bot = 0;
 	}
 }

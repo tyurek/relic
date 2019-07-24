@@ -50,6 +50,7 @@
 #include "relic_bench.h"
 #include "relic_rand.h"
 #include "relic_label.h"
+#include "relic_alloc.h"
 
 #if defined(MULTI)
 #include <math.h>
@@ -225,6 +226,12 @@ typedef struct _ctx_t {
 	int fp_id;
 	/** Prime modulus. */
 	bn_st prime;
+	/** Parameter for generating prime. */
+	bn_st par;
+	/** Parameter in sparse form. */
+	int par_sps[RLC_TERMS + 1];
+	/** Length of sparse prime representation. */
+	int par_len;
 #if FP_RDC == MONTY || !defined(STRIP)
 	/** Value (R^2 mod p) for converting small integers to Montgomery form. */
 	bn_st conv;
@@ -260,6 +267,8 @@ typedef struct _ctx_t {
 	bn_st ep_r;
 	/** The cofactor of the group order in the elliptic curve. */
 	bn_st ep_h;
+	/** The square root of -3 needed for hashing. */
+	fp_st srm3;
 #ifdef EP_ENDOM
 #if EP_MUL == LWNAF || EP_FIX == COMBS || EP_FIX == LWNAF || EP_SIM == INTER || !defined(STRIP)
 	/** Parameters required by the GLV method. @{ */
@@ -277,6 +286,8 @@ typedef struct _ctx_t {
 	int ep_is_endom;
 	/** Flag that stores if the prime curve is supersingular. */
 	int ep_is_super;
+	/** Flag that stores if the prime curve is pairing-friendly. */
+	int ep_is_pairf;
 #ifdef EP_PRECO
 	/** Precomputation table for generator multiplication. */
 	ep_st ep_pre[RLC_EP_TABLE];
@@ -325,7 +336,7 @@ typedef struct _ctx_t {
 	fp_st ed_a;
 	/** The 'd' coefficient of the Edwards elliptic curve. */
 	fp_st ed_d;
-	/** The squre root of -1 needed for hashing. */
+	/** The square root of -1 needed for hashing. */
 	fp_st srm1;
 	/** The generator of the Edwards elliptic curve. */
 	ed_st ed_g;
@@ -342,10 +353,12 @@ typedef struct _ctx_t {
 #endif /* ED_PRECO */
 #endif
 
-#ifdef WITH_PP
+#if defined(WITH_FPX) || defined(WITH_PP)
+	/** Integer part of the quadratic non-residue. */
+	int qnr2;
 	/** Constants for computing Frobenius maps in higher extensions. @{ */
 	fp2_st fp2_p[5];
-	fp_st fp2_p2[4];
+	fp_st fp2_p2[5];
 	fp2_st fp2_p3[5];
 	/** @} */
 	/** Constants for computing Frobenius maps in higher extensions. @{ */

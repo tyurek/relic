@@ -38,7 +38,7 @@
 static int rsa(void) {
 	int code = RLC_ERR;
 	rsa_t pub, prv;
-	uint8_t in[10], out[RLC_BN_BITS / 8 + 1], h[MD_LEN];
+	uint8_t in[10], out[RLC_BN_BITS / 8 + 1], h[RLC_MD_LEN];
 	int il, ol;
 	int result;
 
@@ -101,8 +101,8 @@ static int rsa(void) {
 			TEST_ASSERT(cp_rsa_sig(out, &ol, in, il, 0, prv) == RLC_OK, end);
 			TEST_ASSERT(cp_rsa_ver(out, ol, in, il, 0, pub) == 1, end);
 			md_map(h, in, il);
-			TEST_ASSERT(cp_rsa_sig(out, &ol, h, MD_LEN, 1, prv) == RLC_OK, end);
-			TEST_ASSERT(cp_rsa_ver(out, ol, h, MD_LEN, 1, pub) == 1, end);
+			TEST_ASSERT(cp_rsa_sig(out, &ol, h, RLC_MD_LEN, 1, prv) == RLC_OK, end);
+			TEST_ASSERT(cp_rsa_ver(out, ol, h, RLC_MD_LEN, 1, pub) == 1, end);
 		} TEST_END;
 
 #if CP_RSA == BASIC || !defined(STRIP)
@@ -117,9 +117,9 @@ static int rsa(void) {
 					end);
 			TEST_ASSERT(cp_rsa_ver(out, ol, in, il, 0, pub) == 1, end);
 			md_map(h, in, il);
-			TEST_ASSERT(cp_rsa_sig_basic(out, &ol, h, MD_LEN, 1, prv) == RLC_OK,
+			TEST_ASSERT(cp_rsa_sig_basic(out, &ol, h, RLC_MD_LEN, 1, prv) == RLC_OK,
 					end);
-			TEST_ASSERT(cp_rsa_ver(out, ol, h, MD_LEN, 1, pub) == 1, end);
+			TEST_ASSERT(cp_rsa_ver(out, ol, h, RLC_MD_LEN, 1, pub) == 1, end);
 		} TEST_END;
 #endif
 
@@ -135,9 +135,9 @@ static int rsa(void) {
 					end);
 			TEST_ASSERT(cp_rsa_ver(out, ol, in, il, 0, pub) == 1, end);
 			md_map(h, in, il);
-			TEST_ASSERT(cp_rsa_sig_quick(out, &ol, h, MD_LEN, 1, prv) == RLC_OK,
+			TEST_ASSERT(cp_rsa_sig_quick(out, &ol, h, RLC_MD_LEN, 1, prv) == RLC_OK,
 					end);
-			TEST_ASSERT(cp_rsa_ver(out, ol, h, MD_LEN, 1, pub) == 1, end);
+			TEST_ASSERT(cp_rsa_ver(out, ol, h, RLC_MD_LEN, 1, pub) == 1, end);
 		} TEST_END;
 #endif
 	} CATCH_ANY {
@@ -400,62 +400,62 @@ uint8_t result[] = {
 
 #define ASSIGNP(CURVE)														\
 	RLC_GET(str, CURVE##_A, sizeof(CURVE##_A));								\
-	bn_read_str(d_a, str, strlen(str), 16);									\
+	bn_read_str(da, str, strlen(str), 16);									\
 	RLC_GET(str, CURVE##_A_X, sizeof(CURVE##_A_X));							\
-	fp_read_str(q_a->x, str, strlen(str), 16);									\
+	fp_read_str(qa->x, str, strlen(str), 16);								\
 	RLC_GET(str, CURVE##_A_Y, sizeof(CURVE##_A_Y));							\
-	fp_read_str(q_a->y, str, strlen(str), 16);									\
-	fp_set_dig(q_a->z, 1);													\
+	fp_read_str(qa->y, str, strlen(str), 16);								\
+	fp_set_dig(qa->z, 1);													\
 	RLC_GET(str, CURVE##_B, sizeof(CURVE##_B));								\
 	bn_read_str(d_b, str, strlen(str), 16);									\
 	RLC_GET(str, CURVE##_B_X, sizeof(CURVE##_B_X));							\
-	fp_read_str(q_b->x, str, strlen(str), 16);									\
+	fp_read_str(q_b->x, str, strlen(str), 16);								\
 	RLC_GET(str, CURVE##_B_Y, sizeof(CURVE##_B_Y));							\
-	fp_read_str(q_b->y, str, strlen(str), 16);									\
+	fp_read_str(q_b->y, str, strlen(str), 16);								\
 	fp_set_dig(q_b->z, 1);													\
-	q_a->norm = q_b->norm = 1;												\
+	qa->norm = q_b->norm = 1;												\
 
 #define ASSIGNK(CURVE)														\
 	RLC_GET(str, CURVE##_A, sizeof(CURVE##_A));								\
-	bn_read_str(d_a, str, strlen(str), 16);									\
+	bn_read_str(da, str, strlen(str), 16);									\
 	RLC_GET(str, CURVE##_A_X, sizeof(CURVE##_A_X));							\
-	fb_read_str(q_a->x, str, strlen(str), 16);									\
+	fb_read_str(qa->x, str, strlen(str), 16);								\
 	RLC_GET(str, CURVE##_A_Y, sizeof(CURVE##_A_Y));							\
-	fb_read_str(q_a->y, str, strlen(str), 16);									\
-	fb_set_dig(q_a->z, 1);													\
+	fb_read_str(qa->y, str, strlen(str), 16);								\
+	fb_set_dig(qa->z, 1);													\
 	RLC_GET(str, CURVE##_B, sizeof(CURVE##_B));								\
 	bn_read_str(d_b, str, strlen(str), 16);									\
 	RLC_GET(str, CURVE##_B_X, sizeof(CURVE##_B_X));							\
-	fb_read_str(q_b->x, str, strlen(str), 16);									\
+	fb_read_str(q_b->x, str, strlen(str), 16);								\
 	RLC_GET(str, CURVE##_B_Y, sizeof(CURVE##_B_Y));							\
-	fb_read_str(q_b->y, str, strlen(str), 16);									\
+	fb_read_str(q_b->y, str, strlen(str), 16);								\
 	fb_set_dig(q_b->z, 1);													\
-	q_a->norm = q_b->norm = 1;												\
+	qa->norm = q_b->norm = 1;												\
 
 static int ecdh(void) {
 	int code = RLC_ERR;
-	char str[2 * FC_BYTES + 1];
-	bn_t d_a, d_b;
-	ec_t q_a, q_b;
-	uint8_t key[MD_LEN], k1[MD_LEN], k2[MD_LEN];
+	char str[2 * RLC_FC_BYTES + 1];
+	bn_t da, d_b;
+	ec_t qa, q_b;
+	uint8_t key[RLC_MD_LEN], k1[RLC_MD_LEN], k2[RLC_MD_LEN];
 
-	bn_null(d_a);
+	bn_null(da);
 	bn_null(d_b);
-	ec_null(q_a);
+	ec_null(qa);
 	ec_null(q_b);
 
 	TRY {
-		bn_new(d_a);
+		bn_new(da);
 		bn_new(d_b);
-		ec_new(q_a);
+		ec_new(qa);
 		ec_new(q_b);
 
 		TEST_BEGIN("ecdh key agreement is correct") {
-			TEST_ASSERT(cp_ecdh_gen(d_a, q_a) == RLC_OK, end);
+			TEST_ASSERT(cp_ecdh_gen(da, qa) == RLC_OK, end);
 			TEST_ASSERT(cp_ecdh_gen(d_b, q_b) == RLC_OK, end);
-			TEST_ASSERT(cp_ecdh_key(k1, MD_LEN, d_b, q_a) == RLC_OK, end);
-			TEST_ASSERT(cp_ecdh_key(k2, MD_LEN, d_a, q_b) == RLC_OK, end);
-			TEST_ASSERT(memcmp(k1, k2, MD_LEN) == 0, end);
+			TEST_ASSERT(cp_ecdh_key(k1, RLC_MD_LEN, d_b, qa) == RLC_OK, end);
+			TEST_ASSERT(cp_ecdh_key(k2, RLC_MD_LEN, da, q_b) == RLC_OK, end);
+			TEST_ASSERT(memcmp(k1, k2, RLC_MD_LEN) == 0, end);
 		} TEST_END;
 
 #if MD_MAP == SHONE
@@ -467,7 +467,7 @@ static int ecdh(void) {
 #if defined(EP_PLAIN) && FP_PRIME == 160
 			case SECG_P160:
 				ASSIGNP(SECG_P160);
-				memcpy(key, resultp, MD_LEN);
+				memcpy(key, resultp, RLC_MD_LEN);
 				break;
 #endif
 
@@ -476,7 +476,7 @@ static int ecdh(void) {
 #if defined(EB_KBLTZ) && FB_POLYN == 163
 			case NIST_K163:
 				ASSIGNK(NIST_K163);
-				memcpy(key, resultk, MD_LEN);
+				memcpy(key, resultk, RLC_MD_LEN);
 				break;
 #endif
 
@@ -488,12 +488,12 @@ static int ecdh(void) {
 
 		if (code != RLC_OK) {
 			TEST_ONCE("ecdh satisfies test vectors") {
-				TEST_ASSERT(ec_is_valid(q_a) == 1, end);
+				TEST_ASSERT(ec_is_valid(qa) == 1, end);
 				TEST_ASSERT(ec_is_valid(q_b) == 1, end);
-				TEST_ASSERT(cp_ecdh_key(k1, MD_LEN, d_b, q_a) == RLC_OK, end);
-				TEST_ASSERT(cp_ecdh_key(k2, MD_LEN, d_a, q_b) == RLC_OK, end);
-				TEST_ASSERT(memcmp(k1, key, MD_LEN) == 0, end);
-				TEST_ASSERT(memcmp(k2, key, MD_LEN) == 0, end);
+				TEST_ASSERT(cp_ecdh_key(k1, RLC_MD_LEN, d_b, qa) == RLC_OK, end);
+				TEST_ASSERT(cp_ecdh_key(k2, RLC_MD_LEN, da, q_b) == RLC_OK, end);
+				TEST_ASSERT(memcmp(k1, key, RLC_MD_LEN) == 0, end);
+				TEST_ASSERT(memcmp(k2, key, RLC_MD_LEN) == 0, end);
 			}
 			TEST_END;
 		}
@@ -507,50 +507,50 @@ static int ecdh(void) {
 	code = RLC_OK;
 
   end:
-	bn_free(d_a);
+	bn_free(da);
 	bn_free(d_b);
-	ec_free(q_a);
+	ec_free(qa);
 	ec_free(q_b);
 	return code;
 }
 
 static int ecmqv(void) {
 	int code = RLC_ERR;
-	bn_t d1_a, d1_b;
-	bn_t d2_a, d2_b;
-	ec_t q1_a, q1_b;
-	ec_t q2_a, q2_b;
-	uint8_t key1[MD_LEN], key2[MD_LEN];
+	bn_t d1a, d1_b;
+	bn_t d2a, d2_b;
+	ec_t q1a, q1_b;
+	ec_t q2a, q2_b;
+	uint8_t key1[RLC_MD_LEN], key2[RLC_MD_LEN];
 
-	bn_null(d1_a);
+	bn_null(d1a);
 	bn_null(d1_b);
-	ec_null(q1_a);
+	ec_null(q1a);
 	ec_null(q1_b);
-	bn_null(d2_a);
+	bn_null(d2a);
 	bn_null(d2_b);
-	ec_null(q2_a);
+	ec_null(q2a);
 	ec_null(q2_b);
 
 	TRY {
-		bn_new(d1_a);
+		bn_new(d1a);
 		bn_new(d1_b);
-		ec_new(q1_a);
+		ec_new(q1a);
 		ec_new(q1_b);
-		bn_new(d2_a);
+		bn_new(d2a);
 		bn_new(d2_b);
-		ec_new(q2_a);
+		ec_new(q2a);
 		ec_new(q2_b);
 
 		TEST_BEGIN("ecmqv authenticated key agreement is correct") {
-			TEST_ASSERT(cp_ecmqv_gen(d1_a, q1_a) == RLC_OK, end);
-			TEST_ASSERT(cp_ecmqv_gen(d2_a, q2_a) == RLC_OK, end);
+			TEST_ASSERT(cp_ecmqv_gen(d1a, q1a) == RLC_OK, end);
+			TEST_ASSERT(cp_ecmqv_gen(d2a, q2a) == RLC_OK, end);
 			TEST_ASSERT(cp_ecmqv_gen(d1_b, q1_b) == RLC_OK, end);
 			TEST_ASSERT(cp_ecmqv_gen(d2_b, q2_b) == RLC_OK, end);
-			TEST_ASSERT(cp_ecmqv_key(key1, MD_LEN, d1_b, d2_b, q2_b, q1_a,
-							q2_a) == RLC_OK, end);
-			TEST_ASSERT(cp_ecmqv_key(key2, MD_LEN, d1_a, d2_a, q2_a, q1_b,
+			TEST_ASSERT(cp_ecmqv_key(key1, RLC_MD_LEN, d1_b, d2_b, q2_b, q1a,
+							q2a) == RLC_OK, end);
+			TEST_ASSERT(cp_ecmqv_key(key2, RLC_MD_LEN, d1a, d2a, q2a, q1_b,
 							q2_b) == RLC_OK, end);
-			TEST_ASSERT(memcmp(key1, key2, MD_LEN) == 0, end);
+			TEST_ASSERT(memcmp(key1, key2, RLC_MD_LEN) == 0, end);
 		} TEST_END;
 	}
 	CATCH_ANY {
@@ -559,13 +559,13 @@ static int ecmqv(void) {
 	code = RLC_OK;
 
   end:
-	bn_free(d1_a);
+	bn_free(d1a);
 	bn_free(d1_b);
-	ec_free(q1_a);
+	ec_free(q1a);
 	ec_free(q1_b);
-	bn_free(d2_a);
+	bn_free(d2a);
 	bn_free(d2_b);
-	ec_free(q2_a);
+	ec_free(q2a);
 	ec_free(q2_b);
 	return code;
 }
@@ -573,42 +573,42 @@ static int ecmqv(void) {
 static int ecies(void) {
 	int code = RLC_ERR;
 	ec_t r;
-	bn_t d_a, d_b;
-	ec_t q_a, q_b;
+	bn_t da, d_b;
+	ec_t qa, q_b;
 	int l, in_len, out_len;
-	uint8_t in[RLC_BC_LEN - 1], out[RLC_BC_LEN + MD_LEN];
+	uint8_t in[RLC_BC_LEN - 1], out[RLC_BC_LEN + RLC_MD_LEN];
 
 	ec_null(r);
-	bn_null(d_a);
+	bn_null(da);
 	bn_null(d_b);
-	ec_null(q_a);
+	ec_null(qa);
 	ec_null(q_b);
 
 	TRY {
 		ec_new(r);
-		bn_new(d_a);
+		bn_new(da);
 		bn_new(d_b);
-		ec_new(q_a);
+		ec_new(qa);
 		ec_new(q_b);
 
 		l = ec_param_level();
 		if (l == 128 || l == 192 || l == 256) {
 			TEST_BEGIN("ecies encryption/decryption is correct") {
-				TEST_ASSERT(cp_ecies_gen(d_a, q_a) == RLC_OK, end);
+				TEST_ASSERT(cp_ecies_gen(da, qa) == RLC_OK, end);
 				in_len = RLC_BC_LEN - 1;
-				out_len = RLC_BC_LEN + MD_LEN;
+				out_len = RLC_BC_LEN + RLC_MD_LEN;
 				rand_bytes(in, in_len);
-				TEST_ASSERT(cp_ecies_enc(r, out, &out_len, in, in_len, q_a)
+				TEST_ASSERT(cp_ecies_enc(r, out, &out_len, in, in_len, qa)
 						== RLC_OK, end);
-				TEST_ASSERT(cp_ecies_dec(out, &out_len, r, out, out_len, d_a)
+				TEST_ASSERT(cp_ecies_dec(out, &out_len, r, out, out_len, da)
 						== RLC_OK, end);
 				TEST_ASSERT(memcmp(in, out, out_len) == 0, end);
 			}
 			TEST_END;
 		}
 #if MD_MAP == SH256
-		uint8_t msg[RLC_BC_LEN + MD_LEN];
-		char str[2 * FC_BYTES + 1];
+		uint8_t msg[RLC_BC_LEN + RLC_MD_LEN];
+		char str[2 * RLC_FC_BYTES + 1];
 
 		switch (ec_param_get()) {
 
@@ -630,15 +630,15 @@ static int ecies(void) {
 				uint8_t in[] = {
 					0x12, 0x34, 0x56, 0x78, 0x90, 0xAB, 0xCD, 0xEF
 				};
-				TEST_ASSERT(ec_is_valid(q_a) == 1, end);
+				TEST_ASSERT(ec_is_valid(qa) == 1, end);
 				TEST_ASSERT(ec_is_valid(q_b) == 1, end);
 				out_len = 16;
 				TEST_ASSERT(cp_ecies_dec(out, &out_len, q_b, msg, sizeof(msg),
-								d_a) == RLC_OK, end);
+								da) == RLC_OK, end);
 				TEST_ASSERT(out_len == sizeof(in), end);
 				TEST_ASSERT(memcmp(out, in, sizeof(in)) == RLC_OK, end);
 				out_len = 16;
-				TEST_ASSERT(cp_ecies_dec(out, &out_len, q_a, msg, sizeof(msg),
+				TEST_ASSERT(cp_ecies_dec(out, &out_len, qa, msg, sizeof(msg),
 								d_b) == RLC_OK, end);
 				TEST_ASSERT(out_len == sizeof(in), end);
 				TEST_ASSERT(memcmp(out, in, sizeof(in)) == RLC_OK, end);
@@ -654,9 +654,9 @@ static int ecies(void) {
 
   end:
 	ec_free(r);
-	bn_free(d_a);
+	bn_free(da);
 	bn_free(d_b);
-	ec_free(q_a);
+	ec_free(qa);
 	ec_free(q_b);
 	return code;
 }
@@ -665,7 +665,7 @@ static int ecdsa(void) {
 	int code = RLC_ERR;
 	bn_t d, r, s;
 	ec_t q;
-	uint8_t m[5] = { 0, 1, 2, 3, 4 }, h[MD_LEN];
+	uint8_t m[5] = { 0, 1, 2, 3, 4 }, h[RLC_MD_LEN];
 
 	bn_null(d);
 	bn_null(r);
@@ -683,8 +683,8 @@ static int ecdsa(void) {
 			TEST_ASSERT(cp_ecdsa_sig(r, s, m, sizeof(m), 0, d) == RLC_OK, end);
 			TEST_ASSERT(cp_ecdsa_ver(r, s, m, sizeof(m), 0, q) == 1, end);
 			md_map(h, m, sizeof(m));
-			TEST_ASSERT(cp_ecdsa_sig(r, s, h, MD_LEN, 1, d) == RLC_OK, end);
-			TEST_ASSERT(cp_ecdsa_ver(r, s, h, MD_LEN, 1, q) == 1, end);
+			TEST_ASSERT(cp_ecdsa_sig(r, s, h, RLC_MD_LEN, 1, d) == RLC_OK, end);
+			TEST_ASSERT(cp_ecdsa_ver(r, s, h, RLC_MD_LEN, 1, q) == 1, end);
 		}
 		TEST_END;
 	}
@@ -739,39 +739,43 @@ static int vbnn(void) {
 	int code = RLC_ERR;
 	uint8_t ida[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 	uint8_t idb[] = { 5, 6, 7, 8, 9, 0, 1, 2, 3, 4 };
-	vbnn_user_t a;
-	vbnn_user_t b;
-	vbnn_kgc_t s;
+	bn_t ska, skb;
+	ec_t pka, pkb;
+	bn_t msk, z, h;
+	ec_t r, mpk;
 
 	uint8_t m[] = "Thrice the brinded cat hath mew'd.";
 
-	ec_t r;
-	bn_t z;
-	bn_t h;
-
-	ec_null(r);
 	bn_null(z);
 	bn_null(h);
+	bn_null(msk);
+	bn_null(ska);
+	bn_null(skb);
+	ec_null(r);
+	ec_null(mpk);
+	bn_null(pka);
+	bn_null(pkb);
 
 	TRY {
-		vbnn_kgc_new(s);
-
-		vbnn_user_new(a);
-		vbnn_user_new(b);
-
-		ec_new(r);
 		bn_new(z);
 		bn_new(h);
+		bn_new(msk);
+		bn_new(ska);
+		bn_new(skb);
+		ec_new(r);
+		ec_new(mpk);
+		ec_new(pka);
+		ec_new(pkb);
 
 		TEST_BEGIN("vbnn is correct") {
-			TEST_ASSERT(cp_vbnn_gen(s) == RLC_OK, end);
-			TEST_ASSERT(cp_vbnn_gen_prv(a, s, ida, sizeof(ida)) == RLC_OK, end);
-			TEST_ASSERT(cp_vbnn_gen_prv(b, s, idb, sizeof(idb)) == RLC_OK, end);
-			TEST_ASSERT(cp_vbnn_sig(r, z, h, ida, sizeof(ida), m, sizeof(m), a) == RLC_OK, end);
-			TEST_ASSERT(cp_vbnn_ver(r, z, h, ida, sizeof(ida), m, sizeof(m), s->mpk) == 1, end);
-			TEST_ASSERT(cp_vbnn_ver(r, z, h, idb, sizeof(idb), m, sizeof(m), s->mpk) == 0, end);
-			TEST_ASSERT(cp_vbnn_sig(r, z, h, ida, sizeof(ida), m, sizeof(m), b) == RLC_OK, end);
-			TEST_ASSERT(cp_vbnn_ver(r, z, h, ida, sizeof(ida), m, sizeof(m), s->mpk) == 0, end);
+			TEST_ASSERT(cp_vbnn_gen(msk, mpk) == RLC_OK, end);
+			TEST_ASSERT(cp_vbnn_gen_prv(ska, pka, msk, ida, sizeof(ida)) == RLC_OK, end);
+			TEST_ASSERT(cp_vbnn_gen_prv(skb, pkb, msk, idb, sizeof(idb)) == RLC_OK, end);
+			TEST_ASSERT(cp_vbnn_sig(r, z, h, ida, sizeof(ida), m, sizeof(m), ska, pka) == RLC_OK, end);
+			TEST_ASSERT(cp_vbnn_ver(r, z, h, ida, sizeof(ida), m, sizeof(m), mpk) == 1, end);
+			TEST_ASSERT(cp_vbnn_ver(r, z, h, idb, sizeof(idb), m, sizeof(m), mpk) == 0, end);
+			TEST_ASSERT(cp_vbnn_sig(r, z, h, ida, sizeof(ida), m, sizeof(m), skb, pkb) == RLC_OK, end);
+			TEST_ASSERT(cp_vbnn_ver(r, z, h, ida, sizeof(ida), m, sizeof(m), mpk) == 0, end);
 		}
 		TEST_END;
 	}
@@ -781,27 +785,28 @@ static int vbnn(void) {
 	code = RLC_OK;
 
 end:
-	ec_free(r);
-	bn_free(z);
 	bn_free(h);
-
-	vbnn_kgc_free(s);
-	vbnn_user_free(a);
-	vbnn_user_free(b);
+	bn_free(msk);
+	bn_free(ska);
+	bn_free(skb);
+	ec_free(r);
+	ec_free(mpk);
+	ec_free(pka);
+	ec_free(pkb);
 	return code;
 }
 
-#endif
+#endif /* WITH_EC */
 
 #if defined(WITH_PC)
 
 static int sokaka(void) {
-	int code = RLC_ERR, l = MD_LEN;
+	int code = RLC_ERR, l = RLC_MD_LEN;
 	sokaka_t k;
 	bn_t s;
-	uint8_t k1[MD_LEN], k2[MD_LEN];
-	char i_a[5] = { 'A', 'l', 'i', 'c', 'e' };
-	char i_b[3] = { 'B', 'o', 'b' };
+	uint8_t k1[RLC_MD_LEN], k2[RLC_MD_LEN];
+	char ia[5] = { 'A', 'l', 'i', 'c', 'e' };
+	char ib[3] = { 'B', 'o', 'b' };
 
 	sokaka_null(k);
 	bn_null(s);
@@ -815,10 +820,10 @@ static int sokaka(void) {
 		TEST_BEGIN
 				("sakai-ohgishi-kasahara authenticated key agreement is correct")
 		{
-			TEST_ASSERT(cp_sokaka_gen_prv(k, i_a, 5, s) == RLC_OK, end);
-			TEST_ASSERT(cp_sokaka_key(k1, l, i_a, 5, k, i_b, 3) == RLC_OK, end);
-			TEST_ASSERT(cp_sokaka_gen_prv(k, i_b, 3, s) == RLC_OK, end);
-			TEST_ASSERT(cp_sokaka_key(k2, l, i_b, 3, k, i_a, 5) == RLC_OK, end);
+			TEST_ASSERT(cp_sokaka_gen_prv(k, ia, 5, s) == RLC_OK, end);
+			TEST_ASSERT(cp_sokaka_key(k1, l, ia, 5, k, ib, 3) == RLC_OK, end);
+			TEST_ASSERT(cp_sokaka_gen_prv(k, ib, 3, s) == RLC_OK, end);
+			TEST_ASSERT(cp_sokaka_key(k2, l, ib, 3, k, ia, 5) == RLC_OK, end);
 			TEST_ASSERT(memcmp(k1, k2, l) == 0, end);
 		} TEST_END;
 
@@ -1027,7 +1032,7 @@ static int bbs(void) {
 	g1_t s;
 	g2_t q;
 	gt_t z;
-	uint8_t m[5] = { 0, 1, 2, 3, 4 }, h[MD_LEN];
+	uint8_t m[5] = { 0, 1, 2, 3, 4 }, h[RLC_MD_LEN];
 
 	bn_null(d);
 	g1_null(s);
@@ -1238,8 +1243,8 @@ static int pss(void) {
 	g2_free(x);
 	g2_free(y);
 	for (i = 0; i < 5; i++) {
-		bn_new(_v[i]);
-		g2_new(_y[i]);
+		bn_free(_v[i]);
+		g2_free(_y[i]);
 	}
   	return code;
 }
@@ -1250,7 +1255,7 @@ static int zss(void) {
 	g1_t q;
 	g2_t s;
 	gt_t z;
-	uint8_t m[5] = { 0, 1, 2, 3, 4 }, h[MD_LEN];
+	uint8_t m[5] = { 0, 1, 2, 3, 4 }, h[RLC_MD_LEN];
 
 	bn_null(d);
 	g1_null(q);
@@ -1286,7 +1291,200 @@ static int zss(void) {
 	return code;
 }
 
-#endif
+#define S	2			/* Number of signers. */
+#define L	4			/* Number of labels. */
+#define K	RLC_MD_LEN	/* Size of PRF key. */
+
+static int lhs(void) {
+	int code = RLC_ERR;
+	uint8_t k[S][K];
+	bn_t m, n, msg[S][L], sk[S], d[S], x[S][L];
+	g1_t _r, h, as[S], cs[S], sig[S];
+	g1_t a[S][L], c[S][L], r[S][L];
+	g2_t _s, s[S][L], pk[S], y[S], z[S];
+	gt_t hs[S][RLC_TERMS];
+	char *id = "id";
+
+	bn_null(m);
+	bn_null(n);
+	g1_null(h);
+	g1_null(_r);
+	g2_null(_s);
+
+	TRY {
+		bn_new(m);
+		bn_new(n);
+		g1_new(h);
+		g1_new(_r);
+		g2_new(_s);
+
+		g1_get_ord(n);
+		for (int i = 0; i < S; i++) {
+			for (int j = 0; j < RLC_TERMS; j++) {
+				gt_null(hs[i][j]);
+				gt_new(hs[i][j]);
+			}
+			for (int j = 0; j < L; j++) {
+				bn_null(x[i][j]);
+				bn_null(msg[i][j]);
+				g1_null(a[i][j]);
+				g1_null(c[i][j]);
+				g1_null(r[i][j]);
+				g2_null(s[i][j]);
+				bn_new(x[i][j]);
+				bn_new(msg[i][j]);
+				g1_new(a[i][j]);
+				g1_new(c[i][j]);
+				g1_new(r[i][j]);
+				g2_new(s[i][j]);
+			}
+			bn_null(sk[i]);
+			bn_null(d[i]);
+			g1_null(sig[i]);
+			g1_null(as[i]);
+			g1_null(cs[i]);
+			g2_null(y[i]);
+			g2_null(z[i]);
+			g2_null(pk[i]);
+
+			bn_new(sk[i]);
+			bn_new(d[i]);
+			g1_new(sig[i]);
+			g1_new(as[i]);
+			g1_new(cs[i]);
+			g2_new(y[i]);
+			g2_new(z[i]);
+			g2_new(pk[i]);
+		}
+
+		/* Define linear function. */
+		dig_t f[S][RLC_TERMS];
+		int flen[S];
+		for (int i = 0; i < S; i++) {
+			for (int j = 0; j < RLC_TERMS; j++) {
+				rand_bytes((uint8_t *)&f[i][j], sizeof(uint32_t));
+			}
+			flen[i] = L;
+		}
+
+		/* Initialize scheme for messages of single components. */
+		cp_cmlhs_init(h);
+		for (int j = 0; j < S; j++) {
+			cp_cmlhs_gen(x[j], hs[j], L, k[j], K, sk[j], pk[j], d[j], y[j]);
+		}
+
+		TEST_BEGIN("context-hiding linear homomorphic signature is correct") {
+			int label[L];
+			/* Compute all signatures. */
+			for (int j = 0; j < S; j++) {
+				for (int l = 0; l < L; l++) {
+					label[l] = l;
+					bn_rand_mod(msg[j][l], n);
+					cp_cmlhs_sig(sig[j], z[j], a[j][l], c[j][l], r[j][l], s[j][l],
+						msg[j][l], id, sizeof(id), label[l], x[j][l], h, k[j], K,
+						d[j], sk[j]);
+				}
+			}
+			/* Apply linear function over signatures. */
+			for (int j = 0; j < S; j++) {
+				cp_cmlhs_fun(as[j], cs[j], a[j], c[j], f[j], L);
+			}
+			cp_cmlhs_evl(_r, _s, r[0], s[0], f[0], L);
+			for (int j = 1; j < S; j++) {
+				cp_cmlhs_evl(r[0][0], s[0][0], r[j], s[j], f[j], L);
+				g1_add(_r, _r, r[0][0]);
+				g2_add(_s, _s, s[0][0]);
+			}
+			g1_norm(_r, _r);
+			g2_norm(_s, _s);
+			/* We share messages between users to simplify tests. */
+			bn_zero(m);
+			for (int j = 0; j < S; j++) {
+				for (int l = 0; l < L; l++) {
+					bn_mul_dig(msg[j][l], msg[j][l], f[j][l]);
+					bn_add(m, m, msg[j][l]);
+					bn_mod(m, m, n);
+				}
+			}
+			TEST_ASSERT(cp_cmlhs_ver(_r, _s, sig, z, as, cs, m, id,
+				sizeof(id), label, h, hs, f, flen, y, pk, S) == 1, end);
+		}
+		TEST_END;
+
+		char *ls[L] = { "l" };
+		int lens[L] = { sizeof(ls[0]) };
+
+		TEST_BEGIN("simple linear multi-key homomorphic signature is correct") {
+			for (int j = 0; j < S; j++) {
+				cp_mklhs_gen(sk[j], pk[j]);
+				for (int l = 0; l < L; l++) {
+					bn_rand_mod(msg[j][l], n);
+					cp_mklhs_sig(a[j][l], msg[j][l], ls[l], lens[l], sk[j]);
+				}
+			}
+
+			for (int j = 0; j < S; j++) {
+				cp_mklhs_fun(d[j], msg[j], f[j], L);
+			}
+
+			g1_set_infty(_r);
+			for (int j = 0; j < S; j++) {
+				cp_mklhs_evl(r[0][j], a[j], f[j], L);
+				g1_add(_r, _r, r[0][j]);
+			}
+			g1_norm(_r, _r);
+
+			bn_zero(m);
+			for (int j = 0; j < S; j++) {
+				for (int l = 0; l < L; l++) {
+					bn_mul_dig(msg[j][l], msg[j][l], f[j][l]);
+					bn_add(m, m, msg[j][l]);
+					bn_mod(m, m, n);
+				}
+			}
+
+			TEST_ASSERT(cp_mklhs_ver(_r, m, d, ls, lens, f, flen, pk, S) == 1,
+				end);
+		}
+		TEST_END;
+	}
+	CATCH_ANY {
+		ERROR(end);
+	}
+	code = RLC_OK;
+
+  end:
+	  bn_free(n);
+	  bn_free(m);
+	  g1_free(h);
+	  g1_free(_r);
+	  g2_free(_s);
+
+	  for (int i = 0; i < S; i++) {
+		  for (int j = 0; j < RLC_TERMS; j++) {
+			  gt_free(hs[i][j]);
+		  }
+		  for (int j = 0; j < L; j++) {
+			  bn_free(x[i][j]);
+			  bn_free(msg[i][j]);
+			  g1_free(a[i][j]);
+			  g1_free(c[i][j]);
+			  g1_free(r[i][j]);
+			  g2_free(s[i][j]);
+		  }
+		  bn_free(sk[i]);
+		  bn_free(d[i]);
+		  g1_free(sig[i]);
+		  g1_free(as[i]);
+		  g1_free(cs[i]);
+		  g2_free(y[i]);
+		  g2_free(z[i]);
+		  g2_free(pk[i]);
+	  }
+	return code;
+}
+
+#endif /* WITH_PC */
 
 int main(void) {
 	if (core_init() != RLC_OK) {
@@ -1405,6 +1603,10 @@ int main(void) {
 			return 1;
 		}
 
+		if (lhs() != RLC_OK) {
+			core_clean();
+			return 1;
+		}
 	} else {
 		THROW(ERR_NO_CURVE);
 	}

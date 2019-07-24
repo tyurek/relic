@@ -20,3 +20,28 @@
  * Apache License along with RELIC. If not, see <https://www.gnu.org/licenses/>
  * or <https://www.apache.org/licenses/>.
  */
+
+/**
+ * @file
+ *
+ * Implementation of the low-level prime field multiplication functions.
+ *
+ * @ingroup bn
+ */
+
+#include "gmp.h"
+
+#include "relic_fp.h"
+#include "relic_fp_low.h"
+
+/*============================================================================*/
+/* Public definitions                                                         */
+/*============================================================================*/
+
+dig_t fp_mula_low(dig_t *c, const dig_t *a, dig_t digit) {
+	return mpn_addmul_1(c, a, RLC_FP_DIGS, digit);
+}
+
+dig_t fp_mul1_low(dig_t *c, const dig_t *a, dig_t digit) {
+	return mpn_mul_1(c, a, RLC_FP_DIGS, digit);
+}

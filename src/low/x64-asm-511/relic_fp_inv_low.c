@@ -24,41 +24,47 @@
 /**
  * @file
  *
- * Implementation of the low-level multiple precision integer modular reduction
- * functions.
+ * Implementation of the low-level inversion functions.
  *
- * @ingroup bn
+ * @&version $Id$
+ * @ingroup fp
  */
 
 #include <gmp.h>
-#include <string.h>
 
-#include "relic_bn.h"
-#include "relic_bn_low.h"
-#include "relic_util.h"
+#include "relic_fp.h"
+#include "relic_fp_low.h"
+#include "relic_core.h"
 
 /*============================================================================*/
 /* Public definitions                                                         */
 /*============================================================================*/
 
-void bn_modn_low(dig_t *c, const dig_t *a, int sa, const dig_t *m, int sm,
-		dig_t u) {
-	int i;
-	dig_t r, *tmpc;
+void fp_invn_low(dig_t *c, const dig_t *a) {
+	mp_size_t cn;
+	rlc_align dig_t s[RLC_FP_DIGS], t[2 * RLC_FP_DIGS], u[RLC_FP_DIGS + 1];
 
-	tmpc = c;
+#if FP_RDC == MONTY
+	dv_zero(t + RLC_FP_DIGS, RLC_FP_DIGS);
+	dv_copy(t, a, RLC_FP_DIGS);
+	fp_rdcn_low(u, t);
+#else
+	fp_copy(u, a);
+#endif
 
-	for (i = 0; i < sa; i++, tmpc++, a++) {
-		*tmpc = *a;
+	dv_copy(s, fp_prime_get(), RLC_FP_DIGS);
+
+	mpn_gcdext(t, c, &cn, u, RLC_FP_DIGS, s, RLC_FP_DIGS);
+	if (cn < 0) {
+		dv_zero(c - cn, RLC_FP_DIGS + cn);
+		mpn_sub_n(c, fp_prime_get(), c, RLC_FP_DIGS);
+	} else {
+		dv_zero(c + cn, RLC_FP_DIGS - cn);
 	}
 
-	tmpc = c;
-
-	for (i = 0; i < sm; i++, tmpc++) {
-		r = (dig_t)(*tmpc * u);
-		*tmpc = mpn_addmul_1(tmpc, m, sm, r);
-	}
-	if (mpn_add_n(c, c, tmpc, sm)) {
-		mpn_sub_n(c, c, m, sm);
-	}
+#if FP_RDC == MONTY
+	dv_zero(t, RLC_FP_DIGS);
+	dv_copy(t + RLC_FP_DIGS, c, RLC_FP_DIGS);
+	mpn_tdiv_qr(u, c, 0, t, 2 * RLC_FP_DIGS, fp_prime_get(), RLC_FP_DIGS);
+#endif
 }

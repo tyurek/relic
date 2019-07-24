@@ -98,17 +98,40 @@ enum {
 	/** Barreto-Naehrig curve with embedding degree 12. */
 	BN_P446,
 	/** Barreto-Lynn-Scott curve with embedding degree 12. */
+	B12_P446,
+	/** Barreto-Lynn-Scott curve with embedding degree 12. */
 	B12_P455,
 	/** Barreto-Lynn-Scott curve with embedding degree 24. */
 	B24_P477,
 	/** Kachisa-Schafer-Scott with negative x. */
 	KSS_P508,
+	/** Optimal TNFS-secure curve with embedding degree 8. */
+	OT8_P511,
+	/** Cocks-pinch curve with embedding degree 8. */
+	CP8_P544,
 	/** Barreto-Naehrig curve with positive x. */
 	BN_P638,
 	/** Barreto-Lynn-Scott curve with embedding degree 12. */
 	B12_P638,
 	/** 1536-bit supersingular curve. */
 	SS_P1536,
+};
+
+/**
+ * Pairing-friendly elliptic curve identifiers.
+ */
+enum {
+	/** Barreto-Naehrig. */
+	EP_BN = 1,
+	/* Barreto-Lynn-Scott with embedding degree 12. */
+	EP_B12,
+	/* Optimal TNFS-secure. */
+	EP_OT,
+	/* Kachisa-Schafer-Scott with embedding degree 16. */
+	EP_KSS,
+	/* Barreto-Lynn-Scott with embedding degree 24. */
+	EP_B24,
+
 };
 
 /*============================================================================*/
@@ -317,6 +340,8 @@ typedef ep_st *ep_t;
 #define ep_mul(R, P, K)		ep_mul_monty(R, P, K)
 #elif EP_MUL == LWNAF
 #define ep_mul(R, P, K)		ep_mul_lwnaf(R, P, K)
+#elif EP_MUL == LWREG
+#define ep_mul(R, P, K)		ep_mul_lwreg(R, P, K)
 #endif
 
 /**
@@ -445,6 +470,14 @@ int ep_curve_is_endom(void);
 int ep_curve_is_super(void);
 
 /**
+ * Tests if the configured prime elliptic curve is pairing-friendly.
+ *
+ * @return 0 if the prime elliptic curve is not pairing-friendly, and the
+ * family identifier otherwise.
+ */
+int ep_curve_is_pairf(void);
+
+/**
  * Returns the generator of the group of points in the prime elliptic curve.
  *
  * @param[out] g			- the returned generator.
@@ -502,6 +535,7 @@ void ep_curve_set_super(const fp_t a, const fp_t b, const ep_t g, const bn_t r,
  * Configures a prime elliptic curve with endomorphisms by its coefficients and
  * generator.
  *
+ * @param[in] a			- the 'a' coefficient of the curve.
  * @param[in] b			- the 'b' coefficient of the curve.
  * @param[in] g			- the generator.
  * @param[in] r			- the order of the group of points.
@@ -509,8 +543,8 @@ void ep_curve_set_super(const fp_t a, const fp_t b, const ep_t g, const bn_t r,
  * @param[in] l			- the exponent corresponding to the endomorphism.
  * @param[in] h			- the cofactor of the group order.
  */
-void ep_curve_set_endom(const fp_t b, const ep_t g, const bn_t r, const bn_t h,
-		const fp_t beta, const bn_t l);
+void ep_curve_set_endom(const fp_t a, const fp_t b, const ep_t g, const bn_t r,
+		const bn_t h, const fp_t beta, const bn_t l);
 
 /**
  * Configures a prime elliptic curve by its parameter identifier.
@@ -830,7 +864,7 @@ void ep_mul_lwreg(ep_t r, const ep_t p, const bn_t k);
 void ep_mul_gen(ep_t r, const bn_t k);
 
 /**
- * Multiplies a prime elliptic point by a small integer.
+ * Multiplies a prime elliptic point by a small positive integer.
  *
  * @param[out] r			- the result.
  * @param[in] p				- the point to multiply.
@@ -1014,6 +1048,17 @@ void ep_mul_sim_joint(ep_t r, const ep_t p, const bn_t k, const ep_t q,
  * @param[in] m				- the second integer.
  */
 void ep_mul_sim_gen(ep_t r, const bn_t k, const ep_t q, const bn_t m);
+
+/**
+ * Multiplies prime elliptic curve points by small scalars.
+ * Computes R = \sum k_iP_i.
+ *
+ * @param[out] r			- the result.
+ * @param[in] p				- the points to multiply.
+ * @param[in] k				- the small scalars.
+ * @param[in] len			- the number of points to multiply.
+ */
+void ep_mul_sim_dig(ep_t r, const ep_t p[], dig_t k[], int len);
 
 /**
  * Converts a point to affine coordinates.

@@ -49,7 +49,6 @@ void fp2_exp(fp2_t c, fp2_t a, bn_t b) {
 		fp2_new(t);
 
 		fp2_copy(t, a);
-
 		for (int i = bn_bits(b) - 2; i >= 0; i--) {
 			fp2_sqr(t, t);
 			if (bn_get_bit(b, i)) {
@@ -62,6 +61,37 @@ void fp2_exp(fp2_t c, fp2_t a, bn_t b) {
 		} else {
 			fp2_copy(c, t);
 		}
+	}
+	CATCH_ANY {
+		THROW(ERR_CAUGHT);
+	}
+	FINALLY {
+		fp2_free(t);
+	}
+}
+
+void fp2_exp_dig(fp2_t c, fp2_t a, dig_t b) {
+	fp2_t t;
+
+	if (b == 0) {
+		fp2_set_dig(c, 1);
+		return;
+	}
+
+	fp2_null(t);
+
+	TRY {
+		fp2_new(t);
+
+		fp2_copy(t, a);
+		for (int i = util_bits_dig(b) - 2; i >= 0; i--) {
+			fp2_sqr(t, t);
+			if (b & ((dig_t)1 << i)) {
+				fp2_mul(t, t, a);
+			}
+		}
+
+		fp2_copy(c, t);
 	}
 	CATCH_ANY {
 		THROW(ERR_CAUGHT);
@@ -93,7 +123,6 @@ void fp2_conv_uni(fp2_t c, fp2_t a) {
 		fp2_free(t);
 	}
 }
-
 
 void fp2_exp_uni(fp2_t c, fp2_t a, bn_t b) {
 	fp2_t r, s, t[1 << (FP_WIDTH - 2)];
@@ -169,14 +198,9 @@ int fp2_test_uni(fp2_t a) {
 
 	TRY {
 		fp2_new(t);
-
-		fp_sqr(t[0], a[0]);
-		fp_sqr(t[1], a[1]);
-		fp_add(t[0], t[0], t[1]);
-		fp_set_dig(t[1], 2);
-		fp_neg(t[1], t[1]);
-
-		result = ((fp_cmp_dig(t[0], 1) == RLC_EQ) ? 1 : 0);
+		fp2_frb(t, a, 1);
+		fp2_mul(t, t, a);
+		result = ((fp2_cmp_dig(t, 1) == RLC_EQ) ? 1 : 0);
 	}
 	CATCH_ANY {
 		THROW(ERR_CAUGHT);
@@ -224,6 +248,42 @@ void fp3_exp(fp3_t c, fp3_t a, bn_t b) {
 	}
 }
 
+void fp4_exp(fp4_t c, fp4_t a, bn_t b) {
+	fp4_t t;
+
+	if (bn_is_zero(b)) {
+		fp4_set_dig(c, 1);
+		return;
+	}
+
+	fp4_null(t);
+
+	TRY {
+		fp4_new(t);
+
+		fp4_copy(t, a);
+
+		for (int i = bn_bits(b) - 2; i >= 0; i--) {
+			fp4_sqr(t, t);
+			if (bn_get_bit(b, i)) {
+				fp4_mul(t, t, a);
+			}
+		}
+
+		if (bn_sign(b) == RLC_NEG) {
+			fp4_inv(c, t);
+		} else {
+			fp4_copy(c, t);
+		}
+	}
+	CATCH_ANY {
+		THROW(ERR_CAUGHT);
+	}
+	FINALLY {
+		fp4_free(t);
+	}
+}
+
 void fp6_exp(fp6_t c, fp6_t a, bn_t b) {
 	fp6_t t;
 
@@ -258,6 +318,123 @@ void fp6_exp(fp6_t c, fp6_t a, bn_t b) {
 	FINALLY {
 		fp6_free(t);
 	}
+}
+
+void fp8_exp(fp8_t c, fp8_t a, bn_t b) {
+	fp8_t t;
+
+	if (bn_is_zero(b)) {
+		fp8_set_dig(c, 1);
+		return;
+	}
+
+	fp8_null(t);
+
+	TRY {
+		fp8_new(t);
+
+		fp8_copy(t, a);
+
+		for (int i = bn_bits(b) - 2; i >= 0; i--) {
+			fp8_sqr(t, t);
+			if (bn_get_bit(b, i)) {
+				fp8_mul(t, t, a);
+			}
+		}
+
+		if (bn_sign(b) == RLC_NEG) {
+			fp8_inv(c, t);
+		} else {
+			fp8_copy(c, t);
+		}
+	}
+	CATCH_ANY {
+		THROW(ERR_CAUGHT);
+	}
+	FINALLY {
+		fp8_free(t);
+	}
+}
+
+void fp8_exp_uni(fp8_t c, fp8_t a, bn_t b) {
+	fp8_t t;
+
+	if (bn_is_zero(b)) {
+		fp8_set_dig(c, 1);
+		return;
+	}
+
+	fp8_null(t);
+
+	TRY {
+		fp8_new(t);
+
+		fp8_copy(t, a);
+
+		for (int i = bn_bits(b) - 2; i >= 0; i--) {
+			fp8_sqr_uni(t, t);
+			if (bn_get_bit(b, i)) {
+				fp8_mul(t, t, a);
+			}
+		}
+
+		if (bn_sign(b) == RLC_NEG) {
+			fp8_inv(c, t);
+		} else {
+			fp8_copy(c, t);
+		}
+	}
+	CATCH_ANY {
+		THROW(ERR_CAUGHT);
+	}
+	FINALLY {
+		fp8_free(t);
+	}
+}
+
+void fp8_conv_uni(fp8_t c, fp8_t a) {
+	fp8_t t;
+
+	fp8_null(t);
+
+	TRY {
+		fp8_new(t);
+
+		/* t = a^{-1}. */
+		fp8_inv(t, a);
+		/* c = a^(p^4). */
+		fp8_inv_uni(c, a);
+		/* c = a^(p^4 - 1). */
+		fp8_mul(c, c, t);
+	}
+	CATCH_ANY {
+		THROW(ERR_CAUGHT);
+	}
+	FINALLY {
+		fp8_free(t);
+	}
+}
+
+int fp8_test_uni(fp8_t a) {
+	fp8_t t;
+	int result = 0;
+
+	fp8_null(t);
+
+	TRY {
+		fp8_new(t);
+		fp8_inv_uni(t, a);
+		fp8_mul(t, t, a);
+		result = ((fp8_cmp_dig(t, 1) == RLC_EQ) ? 1 : 0);
+	}
+	CATCH_ANY {
+		THROW(ERR_CAUGHT);
+	}
+	FINALLY {
+		fp8_free(t);
+	}
+
+	return result;
 }
 
 void fp12_exp(fp12_t c, fp12_t a, bn_t b) {
@@ -300,6 +477,47 @@ void fp12_exp(fp12_t c, fp12_t a, bn_t b) {
 	}
 }
 
+void fp12_exp_dig(fp12_t c, fp12_t a, dig_t b) {
+	fp12_t t;
+
+	if (b == 0) {
+		fp12_set_dig(c, 1);
+		return;
+	}
+
+	fp12_null(t);
+
+	TRY {
+		fp12_new(t);
+
+		fp12_copy(t, a);
+
+		if (fp12_test_cyc(a)) {
+			for (int i = util_bits_dig(b) - 2; i >= 0; i--) {
+				fp12_sqr_cyc(t, t);
+				if (b & ((dig_t)1 << i)) {
+					fp12_mul(t, t, a);
+				}
+			}
+		} else {
+			for (int i = util_bits_dig(b) - 2; i >= 0; i--) {
+				fp12_sqr(t, t);
+				if (b & ((dig_t)1 << i)) {
+					fp12_mul(t, t, a);
+				}
+			}
+		}
+
+		fp12_copy(c, t);
+	}
+	CATCH_ANY {
+		THROW(ERR_CAUGHT);
+	}
+	FINALLY {
+		fp12_free(t);
+	}
+}
+
 void fp12_exp_cyc(fp12_t c, fp12_t a, bn_t b) {
 	int i, j, k, l, w = bn_ham(b), endom = 0;
 	bn_t n, _b[4], u[4], v[4];
@@ -329,13 +547,8 @@ void fp12_exp_cyc(fp12_t c, fp12_t a, bn_t b) {
 
 			ep2_curve_get_ord(n);
 
-			switch (ep_param_get()) {
-				case BN_P158:
-				case BN_P254:
-				case BN_P256:
-				case BN_P382:
-				case BN_P446:
-				case BN_P638:
+			switch (ep_curve_is_pairf()) {
+				case EP_BN:
 					ep2_curve_get_vs(v);
 
 					for (i = 0; i < 4; i++) {
@@ -347,7 +560,7 @@ void fp12_exp_cyc(fp12_t c, fp12_t a, bn_t b) {
 						bn_zero(_b[i]);
 					}
 
-					fp_param_get_var(u[0]);
+					fp_prime_get_par(u[0]);
 					bn_dbl(u[2], u[0]);
 					bn_add_dig(u[1], u[2], 1);
 					bn_sub_dig(u[3], u[0], 1);
@@ -361,7 +574,7 @@ void fp12_exp_cyc(fp12_t c, fp12_t a, bn_t b) {
 						bn_mod(_b[0], _b[0], n);
 					}
 
-					fp_param_get_var(u[0]);
+					fp_prime_get_par(u[0]);
 					bn_neg(u[1], u[0]);
 					bn_dbl(u[2], u[0]);
 					bn_add_dig(u[2], u[2], 1);
@@ -374,7 +587,7 @@ void fp12_exp_cyc(fp12_t c, fp12_t a, bn_t b) {
 						bn_mod(_b[1], _b[1], n);
 					}
 
-					fp_param_get_var(u[0]);
+					fp_prime_get_par(u[0]);
 					bn_add_dig(u[1], u[0], 1);
 					bn_neg(u[1], u[1]);
 					bn_dbl(u[2], u[0]);
@@ -389,7 +602,7 @@ void fp12_exp_cyc(fp12_t c, fp12_t a, bn_t b) {
 						bn_mod(_b[2], _b[2], n);
 					}
 
-					fp_param_get_var(u[1]);
+					fp_prime_get_par(u[1]);
 					bn_dbl(u[0], u[1]);
 					bn_neg(u[0], u[0]);
 					bn_dbl(u[2], u[1]);
@@ -417,11 +630,9 @@ void fp12_exp_cyc(fp12_t c, fp12_t a, bn_t b) {
 
 					endom = 1;
 					break;
-				case B12_P381:
-				case B12_P455:
-				case B12_P638:
+				case EP_B12:
 					bn_abs(v[0], b);
-					fp_param_get_var(u[0]);
+					fp_prime_get_par(u[0]);
 
 					bn_copy(u[1], u[0]);
 					if (bn_sign(u[0]) == RLC_NEG) {
@@ -491,7 +702,7 @@ void fp12_exp_cyc(fp12_t c, fp12_t a, bn_t b) {
 			}
 		}
 	} else {
-		fp12_t t, u[w];
+		fp12_t t, *u = RLC_ALLOCA(fp12_t, w);
 
 		fp12_null(t);
 
@@ -543,9 +754,9 @@ void fp12_exp_cyc(fp12_t c, fp12_t a, bn_t b) {
 	}
 }
 
-void fp12_exp_cyc_sps(fp12_t c, fp12_t a, int *b, int len) {
+void fp12_exp_cyc_sps(fp12_t c, fp12_t a, const int *b, int len) {
 	int i, j, k, w = len;
-	fp12_t t, u[w];
+    fp12_t t, *u = RLC_ALLOCA(fp12_t, w);
 
 	if (len == 0) {
 		fp12_set_dig(c, 1);
@@ -645,17 +856,11 @@ void fp12_conv_cyc(fp12_t c, fp12_t a) {
 		fp12_new(t);
 
 		/* First, compute c = a^(p^6 - 1). */
-		/* t = a^{-1}. */
-		fp12_inv(t, a);
-		/* c = a^(p^6). */
-		fp12_inv_uni(c, a);
-		/* c = a^(p^6 - 1). */
-		fp12_mul(c, c, t);
+		fp12_conv_uni(c, a);
 
 		/* Second, compute c^(p^2 + 1). */
 		/* t = c^(p^2). */
-		fp12_frb(t, c, 1);
-		fp12_frb(t, t, 1);
+		fp12_frb(t, c, 2);
 
 		/* c = c^(p^2 + 1). */
 		fp12_mul(c, c, t);
@@ -749,7 +954,11 @@ void fp12_back_cyc(fp12_t c, fp12_t a) {
 }
 
 void fp12_back_cyc_sim(fp12_t c[], fp12_t a[], int n) {
-	fp2_t t0[n], t1[n], t2[n];
+    fp2_t *t = RLC_ALLOCA(fp2_t, n * 3);
+    fp2_t
+        *t0 = t + 0 * n,
+        *t1 = t + 1 * n,
+        *t2 = t + 2 * n;
 
 	if (n == 0) {
 		return;
@@ -898,7 +1107,7 @@ void fp18_exp_cyc(fp18_t c, fp18_t a, bn_t b) {
 			fp18_free(t);
 		}
 	} else {
-		fp18_t u[w];
+		fp18_t *u = RLC_ALLOCA(fp18_t, w);
 
 		TRY {
 			for (i = 0; i < w; i++) {
@@ -948,9 +1157,9 @@ void fp18_exp_cyc(fp18_t c, fp18_t a, bn_t b) {
 	}
 }
 
-void fp18_exp_cyc_sps(fp18_t c, fp18_t a, int *b, int len) {
+void fp18_exp_cyc_sps(fp18_t c, fp18_t a, const int *b, int len) {
 	int i, j, k, w = len;
-	fp18_t t, u[w];
+	fp18_t t, *u = RLC_ALLOCA(fp18_t, w);
 
 	if (len == 0) {
 		fp12_set_dig(c, 1);
@@ -1183,7 +1392,15 @@ void fp18_back_cyc(fp18_t c, fp18_t a) {
 }
 
 void fp18_back_cyc_sim(fp18_t c[], fp18_t a[], int n) {
-	fp3_t t0[n], t1[n], t2[n], t3[n], t4[n], t5[n], t6[n];
+    fp3_t *t = RLC_ALLOCA(fp3_t, n * 7);
+    fp3_t
+        *t0 = t + 0 * n,
+        *t1 = t + 1 * n,
+        *t2 = t + 2 * n,
+        *t3 = t + 3 * n,
+        *t4 = t + 4 * n,
+        *t5 = t + 5 * n,
+        *t6 = t + 6 * n;
 
 	if (n == 0) {
 		return;

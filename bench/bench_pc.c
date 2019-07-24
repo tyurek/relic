@@ -54,7 +54,7 @@ static void memory1(void) {
 
 static void util1(void) {
 	g1_t p, q;
-	uint8_t bin[2 * PC_BYTES + 1];
+	uint8_t bin[2 * RLC_PC_BYTES + 1];
 	int l;
 
 	g1_null(p);
@@ -259,6 +259,14 @@ static void arith1(void) {
 	}
 	BENCH_END;
 
+	BENCH_BEGIN("g1_mul_dig") {
+		bn_rand(k, RLC_POS, bn_bits(n));
+		bn_rand_mod(k, n);
+		g1_rand(p);
+		BENCH_ADD(g1_mul_dig(q, p, k->dp[0]));
+	}
+	BENCH_END;
+
 	BENCH_BEGIN("g1_map") {
 		uint8_t msg[5];
 		rand_bytes(msg, 5);
@@ -295,7 +303,7 @@ static void memory2(void) {
 
 static void util2(void) {
 	g2_t p, q;
-	uint8_t bin[4 * PC_BYTES + 1];
+	uint8_t bin[4 * RLC_PC_BYTES + 1];
 	int l;
 
 	g2_null(p);
@@ -503,6 +511,14 @@ static void arith2(void) {
 	}
 	BENCH_END;
 
+	BENCH_BEGIN("g2_mul_dig") {
+		bn_rand(k, RLC_POS, bn_bits(n));
+		bn_rand_mod(k, n);
+		g2_rand(p);
+		BENCH_ADD(g2_mul_dig(q, p, k->dp[0]));
+	}
+	BENCH_END;
+
 	BENCH_BEGIN("g2_map") {
 		uint8_t msg[5];
 		rand_bytes(msg, 5);
@@ -539,7 +555,7 @@ static void memory(void) {
 
 static void util(void) {
 	gt_t a, b;
-	uint8_t bin[12 * PC_BYTES];
+	uint8_t bin[12 * RLC_PC_BYTES];
 	int l;
 
 	gt_null(a);
@@ -664,6 +680,14 @@ static void arith(void) {
 		gt_get_ord(d);
 		bn_rand_mod(e, d);
 		BENCH_ADD(gt_exp(c, a, e));
+	}
+	BENCH_END;
+
+	BENCH_BEGIN("gt_exp_dig") {
+		gt_rand(a);
+		gt_get_ord(d);
+		bn_rand(e, RLC_POS, bn_bits(d));
+		BENCH_ADD(gt_exp_dig(c, a, e->dp[0]));
 	}
 	BENCH_END;
 

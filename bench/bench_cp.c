@@ -39,7 +39,7 @@
 
 static void rsa(void) {
 	rsa_t pub, prv;
-	uint8_t in[10], new[10], h[MD_LEN], out[RLC_BN_BITS / 8 + 1];
+	uint8_t in[10], new[10], h[RLC_MD_LEN], out[RLC_BN_BITS / 8 + 1];
 	int out_len, new_len;
 
 	rsa_null(pub);
@@ -104,7 +104,7 @@ static void rsa(void) {
 		new_len = out_len;
 		rand_bytes(in, sizeof(in));
 		md_map(h, in, sizeof(in));
-		BENCH_ADD(cp_rsa_sig(out, &out_len, h, MD_LEN, 1, prv));
+		BENCH_ADD(cp_rsa_sig(out, &out_len, h, RLC_MD_LEN, 1, prv));
 	} BENCH_END;
 
 	BENCH_BEGIN("cp_rsa_ver (h = 0)") {
@@ -120,8 +120,8 @@ static void rsa(void) {
 		new_len = out_len;
 		rand_bytes(in, sizeof(in));
 		md_map(h, in, sizeof(in));
-		cp_rsa_sig(out, &out_len, h, MD_LEN, 1, prv);
-		BENCH_ADD(cp_rsa_ver(out, out_len, h, MD_LEN, 1, pub));
+		cp_rsa_sig(out, &out_len, h, RLC_MD_LEN, 1, prv);
+		BENCH_ADD(cp_rsa_ver(out, out_len, h, RLC_MD_LEN, 1, pub));
 	} BENCH_END;
 
 #if CP_RSA == BASIC || !defined(STRIP)
@@ -139,7 +139,7 @@ static void rsa(void) {
 		new_len = out_len;
 		rand_bytes(in, sizeof(in));
 		md_map(h, in, sizeof(in));
-		BENCH_ADD(cp_rsa_sig_basic(out, &out_len, h, MD_LEN, 1, prv));
+		BENCH_ADD(cp_rsa_sig_basic(out, &out_len, h, RLC_MD_LEN, 1, prv));
 	} BENCH_END;
 #endif
 
@@ -276,7 +276,7 @@ static void paillier(void) {
 static void ecdh(void) {
 	bn_t d;
 	ec_t p;
-	uint8_t key[MD_LEN];
+	uint8_t key[RLC_MD_LEN];
 
 	bn_null(d);
 	ec_null(p);
@@ -290,7 +290,7 @@ static void ecdh(void) {
 	BENCH_END;
 
 	BENCH_BEGIN("cp_ecdh_key") {
-		BENCH_ADD(cp_ecdh_key(key, MD_LEN, d, p));
+		BENCH_ADD(cp_ecdh_key(key, RLC_MD_LEN, d, p));
 	}
 	BENCH_END;
 
@@ -301,7 +301,7 @@ static void ecdh(void) {
 static void ecmqv(void) {
 	bn_t d1, d2;
 	ec_t p1, p2;
-	uint8_t key[MD_LEN];
+	uint8_t key[RLC_MD_LEN];
 
 	bn_null(d1);
 	bn_null(d2);
@@ -321,7 +321,7 @@ static void ecmqv(void) {
 	cp_ecmqv_gen(d2, p2);
 
 	BENCH_BEGIN("cp_ecmqv_key") {
-		BENCH_ADD(cp_ecmqv_key(key, MD_LEN, d1, d2, p1, p1, p2));
+		BENCH_ADD(cp_ecmqv_key(key, RLC_MD_LEN, d1, d2, p1, p1, p2));
 	}
 	BENCH_END;
 
@@ -334,7 +334,7 @@ static void ecmqv(void) {
 static void ecies(void) {
 	ec_t q, r;
 	bn_t d;
-	uint8_t in[10], out[16 + MD_LEN];
+	uint8_t in[10], out[16 + RLC_MD_LEN];
 	int in_len, out_len;
 
 	bn_null(d);
@@ -374,7 +374,7 @@ static void ecies(void) {
 }
 
 static void ecdsa(void) {
-	uint8_t msg[5] = { 0, 1, 2, 3, 4 }, h[MD_LEN];
+	uint8_t msg[5] = { 0, 1, 2, 3, 4 }, h[RLC_MD_LEN];
 	bn_t r, s, d;
 	ec_t p;
 
@@ -400,7 +400,7 @@ static void ecdsa(void) {
 
 	BENCH_BEGIN("cp_ecdsa_sign (h = 1)") {
 		md_map(h, msg, 5);
-		BENCH_ADD(cp_ecdsa_sig(r, s, h, MD_LEN, 1, d));
+		BENCH_ADD(cp_ecdsa_sig(r, s, h, RLC_MD_LEN, 1, d));
 	}
 	BENCH_END;
 
@@ -411,7 +411,7 @@ static void ecdsa(void) {
 
 	BENCH_BEGIN("cp_ecdsa_ver (h = 1)") {
 		md_map(h, msg, 5);
-		BENCH_ADD(cp_ecdsa_ver(r, s, h, MD_LEN, 1, p));
+		BENCH_ADD(cp_ecdsa_ver(r, s, h, RLC_MD_LEN, 1, p));
 	}
 	BENCH_END;
 
@@ -459,10 +459,9 @@ static void ecss(void) {
 
 static void vbnn(void) {
 	uint8_t ida[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-	vbnn_kgc_t s;
 	uint8_t idb[] = { 5, 6, 7, 8, 9, 0, 1, 2, 3, 4 };
-	vbnn_user_t a;
-	vbnn_user_t b;
+	bn_t msk, ska, skb;
+	ec_t mpk, pka, pkb;
 
 	uint8_t m[] = "Thrice the brinded cat hath mew'd.";
 
@@ -470,61 +469,66 @@ static void vbnn(void) {
 	bn_t z;
 	bn_t h;
 
-	vbnn_kgc_null(s);
-	vbnn_user_null(a);
-	vbnn_user_null(b);
-
-	ec_null(r);
 	bn_null(z);
 	bn_null(h);
+	bn_null(msk);
+	bn_null(ska);
+	bn_null(skb);
+	ec_null(r);
+	ec_null(mpk);
+	bn_null(pka);
+	bn_null(pkb);
 
-	vbnn_kgc_new(s);
-	vbnn_user_new(a);
-	vbnn_user_new(b);
-
-	ec_new(r);
 	bn_new(z);
 	bn_new(h);
+	bn_new(msk);
+	bn_new(ska);
+	bn_new(skb);
+	ec_new(r);
+	ec_new(mpk);
+	ec_new(pka);
+	ec_new(pkb);
 
 	BENCH_BEGIN("cp_vbnn_gen") {
-		BENCH_ADD(cp_vbnn_gen(s));
+		BENCH_ADD(cp_vbnn_gen(msk, mpk));
 	}
 	BENCH_END;
 
 	BENCH_BEGIN("cp_vbnn_gen_prv") {
-		BENCH_ADD(cp_vbnn_gen_prv(a, s, ida, sizeof(ida)));
+		BENCH_ADD(cp_vbnn_gen_prv(ska, pka, msk, ida, sizeof(ida)));
 	}
 	BENCH_END;
 
-	cp_vbnn_gen_prv(b, s, idb, sizeof(idb));
+	cp_vbnn_gen_prv(skb, pkb, msk, idb, sizeof(idb));
 
 	BENCH_BEGIN("cp_vbnn_sig") {
-		BENCH_ADD(cp_vbnn_sig(r, z, h, ida, sizeof(ida), m, sizeof(m), a));
+		BENCH_ADD(cp_vbnn_sig(r, z, h, ida, sizeof(ida), m, sizeof(m), ska, pka));
 	}
 	BENCH_END;
 
 	BENCH_BEGIN("cp_vbnn_ver") {
-		BENCH_ADD(cp_vbnn_ver(r, z, h, ida, sizeof(ida), m, sizeof(m), s->mpk));
+		BENCH_ADD(cp_vbnn_ver(r, z, h, ida, sizeof(ida), m, sizeof(m), mpk));
 	}
 	BENCH_END;
 
-	ec_free(r);
-	bn_free(z);
 	bn_free(h);
-
-	vbnn_kgc_free(s);
-	vbnn_user_free(a);
-	vbnn_user_free(b);
+	bn_free(msk);
+	bn_free(ska);
+	bn_free(skb);
+	ec_free(r);
+	ec_free(mpk);
+	ec_free(pka);
+	ec_free(pkb);
 }
 
-#endif
+#endif /* WITH_EC */
 
 #if defined(WITH_PC)
 
 static void sokaka(void) {
 	sokaka_t k;
 	bn_t s;
-	uint8_t key1[MD_LEN];
+	uint8_t key1[RLC_MD_LEN];
 	char id_a[5] = { 'A', 'l', 'i', 'c', 'e' };
 	char id_b[3] = { 'B', 'o', 'b' };
 
@@ -544,7 +548,7 @@ static void sokaka(void) {
 	BENCH_END;
 
 	BENCH_BEGIN("cp_sokaka_key (g1)") {
-		BENCH_ADD(cp_sokaka_key(key1, MD_LEN, id_b, sizeof(id_b), k, id_a,
+		BENCH_ADD(cp_sokaka_key(key1, RLC_MD_LEN, id_b, sizeof(id_b), k, id_a,
 						sizeof(id_a)));
 	}
 	BENCH_END;
@@ -553,7 +557,7 @@ static void sokaka(void) {
 		cp_sokaka_gen_prv(k, id_a, sizeof(id_a), s);
 
 		BENCH_BEGIN("cp_sokaka_key (g2)") {
-			BENCH_ADD(cp_sokaka_key(key1, MD_LEN, id_a, sizeof(id_a), k, id_b,
+			BENCH_ADD(cp_sokaka_key(key1, RLC_MD_LEN, id_a, sizeof(id_a), k, id_b,
 							sizeof(id_b)));
 		}
 		BENCH_END;
@@ -723,7 +727,7 @@ static void bls(void) {
 }
 
 static void bbs(void) {
-	uint8_t msg[5] = { 0, 1, 2, 3, 4 }, h[MD_LEN];
+	uint8_t msg[5] = { 0, 1, 2, 3, 4 }, h[RLC_MD_LEN];
 	g1_t s;
 	g2_t p;
 	gt_t z;
@@ -751,7 +755,7 @@ static void bbs(void) {
 
 	BENCH_BEGIN("cp_bbs_sign (h = 1)") {
 		md_map(h, msg, 5);
-		BENCH_ADD(cp_bbs_sig(s, h, MD_LEN, 1, d));
+		BENCH_ADD(cp_bbs_sig(s, h, RLC_MD_LEN, 1, d));
 	}
 	BENCH_END;
 
@@ -762,7 +766,7 @@ static void bbs(void) {
 
 	BENCH_BEGIN("cp_bbs_ver (h = 1)") {
 		md_map(h, msg, 5);
-		BENCH_ADD(cp_bbs_ver(s, h, MD_LEN, 1, p, z));
+		BENCH_ADD(cp_bbs_ver(s, h, RLC_MD_LEN, 1, p, z));
 	}
 	BENCH_END;
 
@@ -876,14 +880,13 @@ static int cls(void) {
 	return code;
 }
 
-static int pss(void) {
-	int i, code = RLC_ERR;
+static void pss(void) {
 	bn_t u, v, _v[5];
 	g1_t a, b;
 	g2_t g, x, y, _y[5];
 	uint8_t m[5] = { 0, 1, 2, 3, 4 };
 	uint8_t *msgs[5] = {m, m, m, m, m};
-	int lens[5] = {sizeof(m), sizeof(m), sizeof(m), sizeof(m), sizeof(m)};
+	int i, lens[5] = {sizeof(m), sizeof(m), sizeof(m), sizeof(m), sizeof(m)};
 
 	bn_null(u);
 	bn_null(v);
@@ -904,7 +907,7 @@ static int pss(void) {
 	g2_new(g);
 	g2_new(x);
 	g2_new(y);
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 5; i++) {
 		bn_new(_v[i]);
 		g2_new(_y[i]);
 	}
@@ -944,11 +947,10 @@ static int pss(void) {
 		bn_free(_v[i]);
 		g1_free(_y[i]);
 	}
-  	return code;
 }
 
 static void zss(void) {
-	uint8_t msg[5] = { 0, 1, 2, 3, 4 }, h[MD_LEN];
+	uint8_t msg[5] = { 0, 1, 2, 3, 4 }, h[RLC_MD_LEN];
 	g1_t p;
 	g2_t s;
 	gt_t z;
@@ -976,7 +978,7 @@ static void zss(void) {
 
 	BENCH_BEGIN("cp_zss_sign (h = 1)") {
 		md_map(h, msg, 5);
-		BENCH_ADD(cp_zss_sig(s, h, MD_LEN, 1, d));
+		BENCH_ADD(cp_zss_sig(s, h, RLC_MD_LEN, 1, d));
 	}
 	BENCH_END;
 
@@ -987,7 +989,7 @@ static void zss(void) {
 
 	BENCH_BEGIN("cp_zss_ver (h = 1)") {
 		md_map(h, msg, 5);
-		BENCH_ADD(cp_zss_ver(s, h, MD_LEN, 1, p, z));
+		BENCH_ADD(cp_zss_ver(s, h, RLC_MD_LEN, 1, p, z));
 	}
 	BENCH_END;
 
@@ -996,7 +998,264 @@ static void zss(void) {
 	g2_free(s);
 }
 
-#endif
+/* Size of the dataset for benchmarking. */
+#define S	10			/* Number of signers. */
+#define L	16			/* Number of labels, must be <= RLC_TERMS. */
+#define K	RLC_MD_LEN	/* Size of PRF key. */
+//#define BENCH_LHS		/* Uncomment for fine-grained benchmarking. */
+
+static void lhs(void) {
+	uint8_t k[S][K];
+	bn_t m, n, msg[L], sk[S], d[S], x[S][L];
+	g1_t _r, h, as[S], cs[S], sig[S];
+	g1_t a[S][L], c[S][L], r[S][L];
+	g2_t _s, s[S][L], pk[S], y[S], z[S];
+	gt_t hs[S][RLC_TERMS];
+	char *id = "id";
+
+	bn_null(m);
+	bn_null(n);
+	g1_null(h);
+	g1_null(_r);
+	g2_null(_s);
+
+	bn_new(m);
+	bn_new(n);
+	g1_new(h);
+	g1_new(_r);
+	g2_new(_s);
+
+	g1_get_ord(n);
+	for (int i = 0; i < L; i++) {
+		bn_null(msg[i]);
+		bn_new(msg[i]);
+		bn_rand_mod(msg[i], n);
+	}
+	for (int i = 0; i < S; i++) {
+		for (int j = 0; j < RLC_TERMS; j++) {
+			gt_null(hs[i][j]);
+			gt_new(hs[i][j]);
+		}
+		for (int j = 0; j < L; j++) {
+			bn_null(x[i][j]);
+			g1_null(a[i][j]);
+			g1_null(c[i][j]);
+			g1_null(r[i][j]);
+			g2_null(s[i][j]);
+			bn_new(x[i][j]);
+			g1_new(a[i][j]);
+			g1_new(c[i][j]);
+			g1_new(r[i][j]);
+			g2_new(s[i][j]);
+		}
+		bn_null(sk[i]);
+		bn_null(d[i]);
+		g1_null(sig[i]);
+		g1_null(as[i]);
+		g1_null(cs[i]);
+		g2_null(y[i]);
+		g2_null(z[i]);
+		g2_null(pk[i]);
+
+		bn_new(sk[i]);
+		bn_new(d[i]);
+		g1_new(sig[i]);
+		g1_new(as[i]);
+		g1_new(cs[i]);
+		g2_new(y[i]);
+		g2_new(z[i]);
+		g2_new(pk[i]);
+	}
+
+	/* Define linear function. */
+	dig_t f[S][RLC_TERMS];
+	int flen[S];
+	for (int i = 0; i < S; i++) {
+		for (int j = 0; j < RLC_TERMS; j++) {
+			rand_bytes((uint8_t *)&f[i][j], sizeof(uint32_t));
+		}
+		flen[i] = L;
+	}
+
+	/* Initialize scheme for messages of single components. */
+	cp_cmlhs_init(h);
+
+	BENCH_BEGIN("cp_cmlhs_gen") {
+		for (int j = 0; j < S; j++) {
+			BENCH_ADD(cp_cmlhs_gen(x[j], hs[j], L, k[j], K, sk[j], pk[j], d[j], y[j]));
+		}
+	} BENCH_DIV(S);
+
+	int label[L];
+
+	BENCH_BEGIN("cp_cmlhs_sig") {
+		/* Compute all signatures. */
+		for (int j = 0; j < S; j++) {
+			for (int l = 0; l < L; l++) {
+				label[l] = l;
+				bn_mod(msg[l], msg[l], n);
+				BENCH_ADD(cp_cmlhs_sig(sig[j], z[j], a[j][l], c[j][l], r[j][l], s[j][l], msg[l],
+					id, sizeof(id), label[l], x[j][l], h, k[j], K, d[j], sk[j]));
+			}
+		}
+	} BENCH_DIV(S * L);
+
+	BENCH_BEGIN("cp_cmlhs_fun") {
+		for (int j = 0; j < S; j++) {
+			BENCH_ADD(cp_cmlhs_fun(as[j], cs[j], a[j], c[j], f[j], L));
+		}
+	} BENCH_DIV(S);
+
+	BENCH_BEGIN("cp_cmlhs_evl") {
+		cp_cmlhs_evl(_r, _s, r[0], s[0], f[0], L);
+		for (int j = 1; j < S; j++) {
+			BENCH_ADD(cp_cmlhs_evl(r[0][0], s[0][0], r[j], s[j], f[j], L));
+			g1_add(_r, _r, r[0][0]);
+			g2_add(_s, _s, s[0][0]);
+		}
+		g1_norm(_r, _r);
+		g2_norm(_s, _s);
+	} BENCH_DIV(S);
+
+	bn_zero(m);
+	for (int j = 0; j < L; j++) {
+		dig_t sum = 0;
+		for (int l = 0; l < S; l++) {
+			sum += f[l][j];
+		}
+		bn_mul_dig(msg[j], msg[j], sum);
+		bn_add(m, m, msg[j]);
+		bn_mod(m, m, n);
+	}
+
+	BENCH_BEGIN("cp_cmlhs_ver") {
+		BENCH_ADD(cp_cmlhs_ver(_r, _s, sig, z, as, cs, m, id, sizeof(id),
+			label, h, hs, f, flen, y, pk, S));
+	} BENCH_DIV(S);
+
+#ifdef BENCH_LHS
+	for (int t = 1; t <= S; t++) {
+		util_print("(%2d ids) ", t);
+		BENCH_BEGIN("cp_cmlhs_ver") {
+			BENCH_ADD(cp_cmlhs_ver(_r, _s, sig, z, as, cs, m, id, sizeof(id),
+				label, h, hs, f, flen, y, pk, t));
+		} BENCH_END;
+	}
+
+	for (int t = 1; t <= L; t++) {
+		util_print("(%2d lbs) ", t);
+		for (int u = 0; u < S; u++) {
+			flen[u] = t;
+		}
+		BENCH_BEGIN("cp_cmlhs_ver") {
+			BENCH_ADD(cp_cmlhs_ver(_r, _s, sig, z, as, cs, m, id, sizeof(id),
+				label, h, hs, f, flen, y, pk, S));
+		} BENCH_END;
+	}
+#endif  /* BENCH_LHS */
+
+	char *ls[L] = { "l" };
+	int lens[L] = { sizeof(ls[0]) };
+
+	BENCH_BEGIN("cp_mklhs_gen") {
+		for (int j = 0; j < S; j++) {
+			BENCH_ADD(cp_mklhs_gen(sk[j], pk[j]));
+		}
+	} BENCH_DIV(S);
+
+	BENCH_BEGIN("cp_mklhs_sig") {
+		for (int j = 0; j < S; j++) {
+			for (int l = 0; l < L; l++) {
+				bn_mod(msg[l], msg[l], n);
+				BENCH_ADD(cp_mklhs_sig(a[j][l], msg[l], ls[l], lens[l], sk[j]));
+			}
+		}
+	} BENCH_DIV(S * L);
+
+	BENCH_BEGIN("cp_mklhs_fun") {
+		for (int j = 0; j < S; j++) {
+			bn_zero(d[j]);
+			BENCH_ADD(cp_mklhs_fun(d[j], msg, f[j], L));
+		}
+	}
+	BENCH_DIV(S);
+
+	BENCH_BEGIN("cp_mklhs_evl") {
+		g1_set_infty(_r);
+		for (int j = 0; j < S; j++) {
+			BENCH_ADD(cp_mklhs_evl(r[0][j], a[j], f[j], L));
+			g1_add(_r, _r, r[0][j]);
+		}
+		g1_norm(_r, _r);
+	}
+	BENCH_DIV(S);
+
+	bn_zero(m);
+	for (int j = 0; j < L; j++) {
+		dig_t sum = 0;
+		for (int l = 0; l < S; l++) {
+			sum += f[l][j];
+		}
+		bn_mul_dig(msg[j], msg[j], sum);
+		bn_add(m, m, msg[j]);
+		bn_mod(m, m, n);
+	}
+
+	BENCH_BEGIN("cp_mklhs_ver") {
+		BENCH_ADD(cp_mklhs_ver(_r, m, d, ls, lens, f, flen, pk, S));
+	} BENCH_DIV(S);
+
+#ifdef BENCH_LHS
+	for (int t = 1; t <= S; t++) {
+		util_print("(%2d ids) ", t);
+		BENCH_BEGIN("cp_mklhs_ver") {
+			BENCH_ADD(cp_mklhs_ver(_r, m, d, ls, lens, f, flen, pk, t));
+		} BENCH_END;
+	}
+
+	for (int t = 1; t <= L; t++) {
+		util_print("(%2d lbs) ", t);
+		for (int u = 0; u < S; u++) {
+			flen[u] = t;
+		}
+		BENCH_BEGIN("cp_mklhs_ver") {
+			BENCH_ADD(cp_mklhs_ver(_r, m, d, ls, lens, f, flen, pk, S));
+		} BENCH_END;
+	}
+#endif /* BENCH_LHS */
+
+	bn_free(n);
+	bn_free(m);
+	g1_free(h);
+	g1_free(_r);
+	g2_free(_s);
+
+	for (int i = 0; i < L; i++) {
+		bn_free(msg[i]);
+	}
+	for (int i = 0; i < S; i++) {
+		for (int j = 0; j < RLC_TERMS; j++) {
+			gt_free(hs[i][j]);
+		}
+		for (int j = 0; j < L; j++) {
+			bn_free(x[i][j]);
+			g1_free(a[i][j]);
+			g1_free(c[i][j]);
+			g1_free(r[i][j]);
+			g2_free(s[i][j]);
+		}
+		bn_free(sk[i]);
+		bn_free(d[i]);
+		g1_free(sig[i]);
+		g1_free(as[i]);
+		g1_free(cs[i]);
+		g2_free(y[i]);
+		g2_free(z[i]);
+		g2_free(pk[i]);
+	}
+}
+
+#endif /* WITH_PC */
 
 int main(void) {
 	if (core_init() != RLC_OK) {
@@ -1041,6 +1300,7 @@ int main(void) {
 		cls();
 		pss();
 		zss();
+		lhs();
 	} else {
 		THROW(ERR_NO_CURVE);
 	}

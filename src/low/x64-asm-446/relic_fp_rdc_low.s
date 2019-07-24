@@ -24,24 +24,39 @@
 /**
  * @file
  *
- * Implementation of the low-level multiple precision division functions.
+ * Implementation of low-level prime field modular reduction.
  *
- * @ingroup bn
+ * @ingroup fp
  */
 
-#include <gmp.h>
+#include "relic_fp_low.h"
 
-#include "relic_bn.h"
-#include "relic_bn_low.h"
+#include "macro.s"
 
-/*============================================================================*/
-/* Public definitions                                                         */
-/*============================================================================*/
+.text
 
-void bn_divn_low(dig_t *c, dig_t *d, dig_t *a, int sa, dig_t *b, int sb) {
-	mpn_tdiv_qr(c, d, 0, a, sa, b, sb);
-}
+.global fp_rdcn_low
 
-void bn_div1_low(dig_t *c, dig_t *d, const dig_t *a, int size, dig_t b) {
-	*d = mpn_divrem_1(c, 0, a, size, b);
-}
+/*
+ * Function: fp_rdcn_low
+ * Inputs: rdi = c, rsi = a
+ * Output: rax
+ */
+fp_rdcn_low:
+	push	%r12
+	push	%r13
+	push	%r14
+	push	%r15
+	push 	%rbx
+	push	%rbp
+	leaq 	p0(%rip), %rbx
+
+	FP_RDCN_LOW %rdi, %r8, %r9, %r10, %rsi, %rbx
+
+	pop		%rbp
+	pop		%rbx
+	pop		%r15
+	pop		%r14
+	pop		%r13
+	pop		%r12
+	ret

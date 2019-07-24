@@ -58,7 +58,7 @@ void ep2_mul_cof_bn(ep2_t r, ep2_t p) {
 		ep2_new(t2);
 		bn_new(x);
 
-		fp_param_get_var(x);
+		fp_prime_get_par(x);
 
 		/* Compute t0 = xP. */
 		ep2_mul_basic(t0, p, x);
@@ -91,7 +91,7 @@ void ep2_mul_cof_bn(ep2_t r, ep2_t p) {
 }
 
 /**
- * Multiplies a point by the cofactor in a Barreto-Lynn-Soctt.
+ * Multiplies a point by the cofactor in a Barreto-Lynn-Scott curve.
  *
  * @param[out] r			- the result.
  * @param[in] p				- the point to multiply.
@@ -113,7 +113,7 @@ void ep2_mul_cof_b12(ep2_t r, ep2_t p) {
 		ep2_new(t3);
 		bn_new(x);
 
-		fp_param_get_var(x);
+		fp_prime_get_par(x);
 
 		/* Compute t0 = xP. */
 		ep2_mul_basic(t0, p, x);
@@ -125,12 +125,10 @@ void ep2_mul_cof_b12(ep2_t r, ep2_t p) {
 		ep2_sub(t2, t2, p);
 		/* t3 = \psi(x - 1)P. */
 		ep2_sub(t3, t0, p);
-		ep2_norm(t3, t3);
 		ep2_frb(t3, t3, 1);
 		ep2_add(t2, t2, t3);
 		/* t3 = \psi^2(2P). */
 		ep2_dbl(t3, p);
-		ep2_norm(t3, t3);
 		ep2_frb(t3, t3, 2);
 		ep2_add(t2, t2, t3);
 		ep2_norm(r, t2);
@@ -154,7 +152,7 @@ void ep2_mul_cof_b12(ep2_t r, ep2_t p) {
 void ep2_map(ep2_t p, const uint8_t *msg, int len) {
 	bn_t x;
 	fp2_t t0;
-	uint8_t digest[MD_LEN];
+	uint8_t digest[RLC_MD_LEN];
 
 	bn_null(x);
 	fp2_null(t0);
@@ -164,7 +162,7 @@ void ep2_map(ep2_t p, const uint8_t *msg, int len) {
 		fp2_new(t0);
 
 		md_map(digest, msg, len);
-		bn_read_bin(x, digest, RLC_MIN(RLC_FP_BYTES, MD_LEN));
+		bn_read_bin(x, digest, RLC_MIN(RLC_FP_BYTES, RLC_MD_LEN));
 
 		fp_prime_conv(p->x[0], x);
 		fp_zero(p->x[1]);
@@ -182,18 +180,11 @@ void ep2_map(ep2_t p, const uint8_t *msg, int len) {
 			fp_add_dig(p->x[0], p->x[0], 1);
 		}
 
-		switch (ep_param_get()) {
-			case BN_P158:
-			case BN_P254:
-			case BN_P256:
-			case BN_P382:
-			case BN_P446:
-			case BN_P638:
+		switch (ep_curve_is_pairf()) {
+			case EP_BN:
 				ep2_mul_cof_bn(p, p);
 				break;
-			case B12_P381:
-			case B12_P455:
-			case B12_P638:
+			case EP_B12:
 				ep2_mul_cof_b12(p, p);
 				break;
 			default:

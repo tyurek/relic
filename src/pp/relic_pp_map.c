@@ -50,7 +50,7 @@
  */
 static void pp_mil_k2(fp2_t r, ep_t *t, ep_t *p, ep_t *q, int m, bn_t a) {
 	fp2_t l;
-	ep_t _q[m];
+	ep_t *_q = RLC_ALLOCA(ep_t, m);
 	int i, j;
 
 	fp2_null(l);
@@ -101,7 +101,7 @@ static void pp_mil_k2(fp2_t r, ep_t *t, ep_t *p, ep_t *q, int m, bn_t a) {
  */
 static void pp_mil_lit_k2(fp2_t r, ep_t *t, ep_t *p, ep_t *q, int m, bn_t a) {
 	fp2_t l, _l;
-	ep_t _q[m];
+	ep_t *_q = RLC_ALLOCA(ep_t, m);
 	int i, j;
 
 	fp2_null(l);
@@ -147,78 +147,6 @@ static void pp_mil_lit_k2(fp2_t r, ep_t *t, ep_t *p, ep_t *q, int m, bn_t a) {
 
 /**
  * Compute the Miller loop for pairings of type G_2 x G_1 over the bits of a
- * given parameter.
- *
- * @param[out] r			- the result.
- * @param[out] t			- the resulting point.
- * @param[in] q				- the first pairing argument in affine coordinates.
- * @param[in] p				- the second pairing argument in affine coordinates.
- * @param[in] n 			- the number of pairings to evaluate.
- * @param[in] a				- the loop parameter.
- */
-static void pp_mil_k12(fp12_t r, ep2_t *t, ep2_t *q, ep_t *p, int m, bn_t a) {
-	fp12_t l;
-	ep_t _p[m];
-	int i, j;
-
-	if (m == 0) {
-		return;
-	}
-
-	fp12_null(l);
-
-	TRY {
-		fp12_new(l);
-
-		for (j = 0; j < m; j++) {
-			ep_null(_p[j]);
-			ep_new(_p[j]);
-#if EP_ADD == BASIC
-			ep_neg(_p[j], p[i]);
-#else
-			fp_add(_p[j]->x, p[j]->x, p[j]->x);
-			fp_add(_p[j]->x, _p[j]->x, p[j]->x);
-			fp_neg(_p[j]->y, p[j]->y);
-#endif
-			ep2_copy(t[j], q[j]);
-		}
-
-		fp12_zero(l);
-
-		/* Precomputing. */
-		pp_dbl_k12(r, t[0], t[0], _p[0]);
-		if (bn_get_bit(a, bn_bits(a) - 2)) {
-			for (j = 0; j < m; j++) {
-				pp_add_k12(l, t[j], q[j], p[j]);
-				fp12_mul_dxs(r, r, l);
-			}
-		}
-
-		for (i = bn_bits(a) - 3; i >= 0; i--) {
-			fp12_sqr(r, r);
-			for (j = 0; j < m; j++) {
-				pp_dbl_k12(l, t[j], t[j], _p[j]);
-				fp12_mul_dxs(r, r, l);
-				if (bn_get_bit(a, i)) {
-					pp_add_k12(l, t[j], q[j], p[j]);
-					fp12_mul_dxs(r, r, l);
-				}
-			}
-		}
-	}
-	CATCH_ANY {
-		THROW(ERR_CAUGHT);
-	}
-	FINALLY {
-		fp12_free(l);
-		for (j = 0; j < m; j++) {
-			ep_free(_p[j]);
-		}
-	}
-}
-
-/**
- * Compute the Miller loop for pairings of type G_2 x G_1 over the bits of a
  * given parameter represented in sparse form.
  *
  * @param[out] r			- the result.
@@ -226,15 +154,14 @@ static void pp_mil_k12(fp12_t r, ep2_t *t, ep2_t *q, ep_t *p, int m, bn_t a) {
  * @param[in] q				- the vector of first arguments in affine coordinates.
  * @param[in] p				- the vector of second arguments in affine coordinates.
  * @param[in] n 			- the number of pairings to evaluate.
- * @param[in] s				- the loop parameter in sparse form.
- * @paramin] len			- the length of the loop parameter.
+ * @param[in] a				- the loop parameter.
  */
-static void pp_mil_sps_k12(fp12_t r, ep2_t *t, ep2_t *q, ep_t *p, int m, int *s,
-		int len) {
+static void pp_mil_k12(fp12_t r, ep2_t *t, ep2_t *q, ep_t *p, int m, bn_t a) {
 	fp12_t l;
-	ep_t _p[m];
-	ep2_t _q[m];
-	int i, j;
+	ep_t *_p = RLC_ALLOCA(ep_t, m);
+	ep2_t *_q = RLC_ALLOCA(ep2_t, m);
+	int i, j, len = bn_bits(a) + 1;
+	int8_t *s = RLC_ALLOCA(int8_t, len);
 
 	if (m == 0) {
 		return;
@@ -262,6 +189,7 @@ static void pp_mil_sps_k12(fp12_t r, ep2_t *t, ep2_t *q, ep_t *p, int m, int *s,
 #endif
 		}
 
+		bn_rec_naf(s, &len, a, 2);
 		pp_dbl_k12(r, t[0], t[0], _p[0]);
 		for (j = 1; j < m; j++) {
 			pp_dbl_k12(l, t[j], t[j], _p[j]);
@@ -321,7 +249,7 @@ static void pp_mil_sps_k12(fp12_t r, ep2_t *t, ep2_t *q, ep_t *p, int m, int *s,
  */
 static void pp_mil_lit_k12(fp12_t r, ep_t *t, ep_t *p, ep2_t *q, int m, bn_t a) {
 	fp12_t l;
-	ep2_t _q[m];
+	ep2_t *_q = RLC_ALLOCA(ep2_t, m);
 	int j;
 
 	fp12_null(l);
@@ -454,7 +382,9 @@ void pp_map_tatep_k2(fp2_t r, ep_t p, ep_t q) {
 }
 
 void pp_map_sim_tatep_k2(fp2_t r, ep_t *p, ep_t *q, int m) {
-	ep_t _p[m], _q[m], t[m];
+	ep_t *_p =RLC_ALLOCA(ep_t, m),
+        *_q = RLC_ALLOCA(ep_t, m),
+        *t = RLC_ALLOCA(ep_t, m);
 	bn_t n;
 	int i, j;
 
@@ -542,8 +472,8 @@ void pp_map_tatep_k12(fp12_t r, ep_t p, ep2_t q) {
 }
 
 void pp_map_sim_tatep_k12(fp12_t r, ep_t *p, ep2_t *q, int m) {
-	ep_t _p[m], t[m];
-	ep2_t _q[m];
+	ep_t *_p = RLC_ALLOCA(ep_t, m), *t = RLC_ALLOCA(ep_t, m);
+	ep2_t *_q = RLC_ALLOCA(ep2_t, m);
 	bn_t n;
 	int i, j;
 
@@ -647,7 +577,10 @@ void pp_map_weilp_k2(fp2_t r, ep_t p, ep_t q) {
 }
 
 void pp_map_sim_weilp_k2(fp2_t r, ep_t *p, ep_t *q, int m) {
-	ep_t _p[m], _q[m], t0[m], t1[m];
+	ep_t *_p = RLC_ALLOCA(ep_t, m),
+        *_q = RLC_ALLOCA(ep_t, m),
+        *t0 = RLC_ALLOCA(ep_t, m),
+        *t1 = RLC_ALLOCA(ep_t, m);
 	fp2_t r0, r1;
 	bn_t n;
 	int i, j;
@@ -765,8 +698,8 @@ void pp_map_weilp_k12(fp12_t r, ep_t p, ep2_t q) {
 }
 
 void pp_map_sim_weilp_k12(fp12_t r, ep_t *p, ep2_t *q, int m) {
-	ep_t _p[m], t0[m];
-	ep2_t _q[m], t1[m];
+	ep_t *_p = RLC_ALLOCA(ep_t, m), *t0 = RLC_ALLOCA(ep_t, m);
+	ep2_t *_q = RLC_ALLOCA(ep2_t, m), *t1 = RLC_ALLOCA(ep2_t, m);
 	fp12_t r0, r1;
 	bn_t n;
 	int i, j;
@@ -831,14 +764,12 @@ void pp_map_sim_weilp_k12(fp12_t r, ep_t *p, ep2_t *q, int m) {
 
 #endif
 
-
 #if PP_MAP == OATEP || !defined(STRIP)
 
 void pp_map_oatep_k12(fp12_t r, ep_t p, ep2_t q) {
 	ep_t _p[1];
 	ep2_t t[1], _q[1];
 	bn_t a;
-	int len = RLC_FP_BITS, s[RLC_FP_BITS];
 
 	ep_null(_p[0]);
 	ep2_null(_q[0]);
@@ -851,25 +782,19 @@ void pp_map_oatep_k12(fp12_t r, ep_t p, ep2_t q) {
 		ep2_new(t[0]);
 		bn_new(a);
 
-		fp_param_get_var(a);
-		bn_mul_dig(a, a, 6);
-		bn_add_dig(a, a, 2);
-		fp_param_get_map(s, &len);
+		fp_prime_get_par(a);
 		fp12_set_dig(r, 1);
 
 		ep_norm(_p[0], p);
 		ep2_norm(_q[0], q);
 
 		if (!ep_is_infty(_p[0]) && !ep2_is_infty(_q[0])) {
-			switch (ep_param_get()) {
-				case BN_P158:
-				case BN_P254:
-				case BN_P256:
-				case BN_P382:
-				case BN_P446:
-				case BN_P638:
+			switch (ep_curve_is_pairf()) {
+				case EP_BN:
+					bn_mul_dig(a, a, 6);
+					bn_add_dig(a, a, 2);
 					/* r = f_{|a|,Q}(P). */
-					pp_mil_sps_k12(r, t, _q, _p, 1, s, len);
+					pp_mil_k12(r, t, _q, _p, 1, a);
 					if (bn_sign(a) == RLC_NEG) {
 						/* f_{-a,Q}(P) = 1/f_{a,Q}(P). */
 						fp12_inv_uni(r, r);
@@ -878,11 +803,9 @@ void pp_map_oatep_k12(fp12_t r, ep_t p, ep2_t q) {
 					pp_fin_k12_oatep(r, t[0], _q[0], _p[0]);
 					pp_exp_k12(r, r);
 					break;
-				case B12_P381:
-				case B12_P455:
-				case B12_P638:
+				case EP_B12:
 					/* r = f_{|a|,Q}(P). */
-					pp_mil_sps_k12(r, t, _q, _p, 1, s, len);
+					pp_mil_k12(r, t, _q, _p, 1, a);
 					if (bn_sign(a) == RLC_NEG) {
 						fp12_inv_uni(r, r);
 						ep2_neg(t[0], t[0]);
@@ -904,10 +827,10 @@ void pp_map_oatep_k12(fp12_t r, ep_t p, ep2_t q) {
 }
 
 void pp_map_sim_oatep_k12(fp12_t r, ep_t *p, ep2_t *q, int m) {
-	ep_t _p[m];
-	ep2_t t[m], _q[m];
+	ep_t *_p = RLC_ALLOCA(ep_t, m);
+	ep2_t* t = RLC_ALLOCA(ep2_t, m), *_q = RLC_ALLOCA(ep2_t, m);
 	bn_t a;
-	int i, j, len = RLC_FP_BITS, s[RLC_FP_BITS];
+	int i, j;
 
 	TRY {
 		bn_null(a);
@@ -929,22 +852,16 @@ void pp_map_sim_oatep_k12(fp12_t r, ep_t *p, ep2_t *q, int m) {
 			}
 		}
 
+		fp_prime_get_par(a);
 		fp12_set_dig(r, 1);
-		fp_param_get_var(a);
-		bn_mul_dig(a, a, 6);
-		bn_add_dig(a, a, 2);
-		fp_param_get_map(s, &len);
 
 		if (j > 0) {
-			switch (ep_param_get()) {
-				case BN_P158:
-				case BN_P254:
-				case BN_P256:
-				case BN_P382:
-				case BN_P446:
-				case BN_P638:
+			switch (ep_curve_is_pairf()) {
+				case EP_BN:
+					bn_mul_dig(a, a, 6);
+					bn_add_dig(a, a, 2);
 					/* r = f_{|a|,Q}(P). */
-					pp_mil_sps_k12(r, t, _q, _p, j, s, len);
+					pp_mil_k12(r, t, _q, _p, j, a);
 					if (bn_sign(a) == RLC_NEG) {
 						/* f_{-a,Q}(P) = 1/f_{a,Q}(P). */
 						fp12_inv_uni(r, r);
@@ -957,11 +874,9 @@ void pp_map_sim_oatep_k12(fp12_t r, ep_t *p, ep2_t *q, int m) {
 					}
 					pp_exp_k12(r, r);
 					break;
-				case B12_P381:
-				case B12_P455:
-				case B12_P638:
+				case EP_B12:
 					/* r = f_{|a|,Q}(P). */
-					pp_mil_sps_k12(r, t, _q, _p, j, s, len);
+					pp_mil_k12(r, t, _q, _p, j, a);
 					if (bn_sign(a) == RLC_NEG) {
 						fp12_inv_uni(r, r);
 					}

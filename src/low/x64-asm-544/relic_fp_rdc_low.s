@@ -24,36 +24,39 @@
 /**
  * @file
  *
- * Implementation of the multiple precision integer arithmetic multiplication
- * functions.
+ * Implementation of low-level prime field modular reduction.
  *
- * @ingroup bn
+ * @ingroup fp
  */
 
-#include <gmp.h>
+#include "relic_fp_low.h"
 
-#include "relic_bn.h"
-#include "relic_bn_low.h"
-#include "relic_util.h"
+#include "macro.s"
 
-/*============================================================================*/
-/* Public definitions                                                         */
-/*============================================================================*/
+.text
 
-void bn_sqra_low(dig_t *c, const dig_t *a, int size) {
-	dig_t carry;
-	dig_t digit;
+.global cdecl(fp_rdcn_low)
 
-	digit = *a;
+/*
+ * Function: fp_rdcn_low
+ * Inputs: rdi = c, rsi = a
+ * Output: rax
+ */
+cdecl(fp_rdcn_low):
+	push	%r12
+	push	%r13
+	push	%r14
+	push	%r15
+	push 	%rbx
+	push	%rbp
+	leaq 	p0(%rip), %rbx
 
-	carry = mpn_addmul_1(c, a, size, digit);
-	mpn_add_1(c+size, c+size, size, carry);
-	if (size - 1 > 0) {
-		carry = mpn_addmul_1(c+1, a+1, size-1, digit);
-		mpn_add_1(c+size, c+size, size, carry);
-	}
-}
+	FP_RDCN_LOW %rdi, %r8, %r9, %r10, %rsi, %rbx
 
-void bn_sqrn_low(dig_t *c, const dig_t *a, int size) {
-	mpn_mul_n(c, a, a, size);
-}
+	pop		%rbp
+	pop		%rbx
+	pop		%r15
+	pop		%r14
+	pop		%r13
+	pop		%r12
+	ret

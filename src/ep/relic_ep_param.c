@@ -378,7 +378,7 @@
 
 #if defined(EP_ENDOM) && FP_PRIME == 446
 /**
- * Parameters for a 455-bit pairing-friendly prime curve at the new 128-bit security level.
+ * Parameters for a 446-bit pairing-friendly prime curve at the new 128-bit security level.
  */
 /** @{ */
 #define BN_P446_A		"0"
@@ -389,6 +389,21 @@
 #define BN_P446_H		"1"
 #define BN_P446_BETA	"4800000000000000003600000004800000000D800000024000000019E00000004800000006300000002E"
 #define BN_P446_LAMB	"9000000000000000006C00000007E00000001B00000003F000000027C00000007E00000009600000003D"
+#endif
+
+#if defined(EP_ENDOM) && FP_PRIME == 446
+/**
+ * Parameters for a 446-bit pairing-friendly prime curve at the new 128-bit security level.
+ */
+/** @{ */
+#define B12_P446_A		"0"
+#define B12_P446_B		"1"
+#define B12_P446_X		"297792B2D03DE39D64FACA6D49FCF7A8850144CA24FC5D815C082A3AA87D1A16929E56228C136123BA51421AE89CACD5B4789A38CE39035A"
+#define B12_P446_Y		"DC40DDCBAB2823A7870B5C688AA04FEE40369D913E4F2F0947A152FE1C27A79B7F787E9C35B869C3846FAC4F12A70D0FE22D2E244268CC"
+#define B12_P446_R		"511B70539F27995B34995830FA4D04C98CCC4C050BC7BB9B0E8D8CA34610428001400040001"
+#define B12_P446_H		"C02082602B0055D560AB0AD5AAAAC0002AAAC"
+#define B12_P446_BETA	"1E6CDD3293325B95DF27348D6A9BD508D8EB96B7327F669160A10788D59E7086535EEBD51BC0DCB32C009400320004"
+#define B12_P446_LAMB	"511B70539F27995B34995830FA4D04C98CCC49C4AA409B1A0D8C0C820500020001000000000"
 #endif
 
 #if defined(EP_ENDOM) && FP_PRIME == 455
@@ -438,12 +453,41 @@
 /** @} */
 #endif
 
+#if defined(EP_ENDOM) && FP_PRIME == 511
+/**
+ * Parameters for the 511-bit jacobi quartic curve.
+ */
+/** @{ */
+#define OT8_P511_A		"1"
+#define OT8_P511_B		"0"
+#define OT8_P511_X		"17D8A9281052D5C14B26B88FBDA0DE7001F384C09F7425270874BD187725FF7D68887EC3539658E3C60F6FFADCED61F47267CCDAF5B850DF4A441105AE49CE6"
+#define OT8_P511_Y		"9CB933777C7E567A2040EC255073F2C271F632E6E81490D85377DD77659416965584F5F44DFB146E33393CE36D908F79A4ED5B4B411D78572E6CA972F66DEC8"
+#define OT8_P511_R		"100000000002AC000000002AD56000000131304C0000032F6D0B1000000000001"
+#define OT8_P511_H		"40000000000AB000000000AB5580000044C4C130000564BDB42C401C8E400000"
+#define OT8_P511_BETA	"20000000000AB0000000018FC7800000816148500019C9EF620CC291655380BA94133E310D1CC71ED0A7EBD9B2AB859C0F60AC90F7A2E5A1140C3FCBF1DD5400"
+#define OT8_P511_LAMB	"100000000002AC000000002AD55FFFFFF131304BFFFEAD2F6D0B0FF8DC7000001"
+/** @} */
+#endif
+
+#if defined(EP_ENDOM) && FP_PRIME == 544
+/**
+ * Parameters for the 544-bit Cocks-Pinch curve.
+ */
+/** @{ */
+#define CP8_P544_A		"121"
+#define CP8_P544_B		"0"
+#define CP8_P544_X		"355DF0E918A9EDE73207C59CF710621D8E8AACD165866679BF80CCDE7EAAC8D74D67517410AEE0124880776C21A93081EE926844ED31B96CB9142283C92E52394A6B25F1"
+#define CP8_P544_Y		"4F52096E583AE7E4E4EF4E332D7E1767FEF5334CD490AF79C9BE37CA22E6ABD34E6E76179DC8366617A4CF2E02508D42A3005385BE367C0EDBA83C657337B3C17E916F4E"
+#define CP8_P544_R		"FFFFFFFFBFDF08000606301799D79CE503FE520538262507B940781000000001"
+#define CP8_P544_H		"B491000612C47EF1FB70DE51FB3092692A3ECFC82033520B477E73EF39DE60F174627C04"
+#define CP8_P544_BETA	"AB3B4B3FD9A4688D3C2FEF90E556F1F95A682866A1EBA3BD942E459CF35894F8E3F94238C47CBD37A759C33BFF6DEAC41B68F6C91B3A7B2F97A53E3A94ED22F06E739E39"
+#define CP8_P544_LAMB	"FFFFFFFFBFDF08000606301799D79CE403FE52055836A107B83F700C10FC0001"
+/** @} */
+#endif
+
 #if defined(EP_ENDOM) && FP_PRIME == 638
 /**
  * Parameters for a 638-bit pairing-friendly prime curve.
- *
- * Pairing computation over this curve is not supported anymore, but B12_P638
- * is an overall better candidate anyway.
  */
 /** @{ */
 #define BN_P638_A		"0"
@@ -467,7 +511,7 @@
 #define B12_P638_X		"160F63A3A3B297F113075ED79466138E85B025F7FE724B78E32D7AFC4D734BDD54F871092B8D1966D491C0F45A48A8BBA5586095DFFCC1410B7E26ED16BAF98C1117959134C24A17A7BE31E1AFBF844F"
 #define B12_P638_Y		"2D340B33877480A9785E86ED2EDCAFC170B82568CB21B708B79FC6DA3748461FCD80697E486695F3CAE76FCB1781E784F6812F57BE05DFC850426650DED8B40A464B00A35718228EC8E02B52B59D876E"
 #define B12_P638_R		"50F94035FF4000FFFFFFFFFFF9406BFDC0040000000000000035FB801DFFBFFFFFFFFFFFFFFF401BFF80000000000000000000FFC01"
-#define B12_P638_H		"1"
+#define B12_P638_H		"BFF8001555555555555555554D957EAAAAAAAAAAAAAAAAAAAABEB"
 #define B12_P638_BETA	"1E5CD621BF4C01DFFDFFFFFFFCE57239EE275BF63000000000207C802254C4BE7FFFFFFFFFFF55FE959D1B8000000000000001BCCEB5801FFFFFFFFFFFFFFFFE2E801E"
 #define B12_P638_LAMB	"50F94035FF4000FFFFFFFFFFF9406BFDC0040000000000000035F94035FF7FFFFFFFFFFFFFFF4033FF00000000000000000000FF801"
 /** @} */
@@ -530,7 +574,7 @@ int ep_param_get(void) {
 }
 
 void ep_param_set(int param) {
-	int plain = 0, endom = 0, super = 0;
+	int plain = 0, endom = 0, super = 0, pairf = 0;
 	char str[2 * RLC_FP_BYTES + 2];
 	fp_t a, b, beta;
 	ep_t g;
@@ -560,6 +604,7 @@ void ep_param_set(int param) {
 			case BN_P158:
 				ASSIGNK(BN_P158, BN_158);
 				endom = 1;
+				pairf = EP_BN;
 				break;
 #endif
 #if defined(EP_PLAIN) && FP_PRIME == 160
@@ -614,6 +659,7 @@ void ep_param_set(int param) {
 			case BN_P254:
 				ASSIGNK(BN_P254, BN_254);
 				endom = 1;
+				pairf = EP_BN;
 				break;
 #endif
 #if defined(EP_PLAIN) && FP_PRIME == 251
@@ -646,6 +692,7 @@ void ep_param_set(int param) {
 			case BN_P256:
 				ASSIGNK(BN_P256, BN_256);
 				endom = 1;
+				pairf = EP_BN;
 				break;
 #endif
 #if defined(EP_PLAIN) & FP_PRIME == 382
@@ -658,12 +705,14 @@ void ep_param_set(int param) {
 			case B12_P381:
 				ASSIGNK(B12_P381, B12_381);
 				endom = 1;
+				pairf = EP_B12;
 				break;
 #endif
 #if defined(EP_ENDOM) & FP_PRIME == 382
 			case BN_P382:
 				ASSIGNK(BN_P382, BN_382);
 				endom = 1;
+				pairf = EP_BN;
 				break;
 #endif
 #if defined(EP_PLAIN) && FP_PRIME == 383
@@ -682,12 +731,19 @@ void ep_param_set(int param) {
 			case BN_P446:
 				ASSIGNK(BN_P446, BN_446);
 				endom = 1;
+				pairf = EP_BN;
+				break;
+			case B12_P446:
+				ASSIGNK(B12_P446, B12_446);
+				endom = 1;
+				pairf = EP_B12;
 				break;
 #endif
 #if defined(EP_ENDOM) && FP_PRIME == 455
 			case B12_P455:
 				ASSIGNK(B12_P455, B12_455);
 				endom = 1;
+				pairf = EP_B12;
 				break;
 #endif
 #if defined(EP_ENDOM) && FP_PRIME == 477
@@ -699,6 +755,12 @@ void ep_param_set(int param) {
 #if defined(EP_ENDOM) && FP_PRIME == 508
 			case KSS_P508:
 				ASSIGNK(KSS_P508, KSS_508);
+				endom = 1;
+				break;
+#endif
+#if defined(EP_ENDOM) && FP_PRIME == 511
+			case OT8_P511:
+				ASSIGNK(OT8_P511, OT_511);
 				endom = 1;
 				break;
 #endif
@@ -714,14 +776,22 @@ void ep_param_set(int param) {
 				plain = 1;
 				break;
 #endif
+#if defined(EP_ENDOM) && FP_PRIME == 544
+			case CP8_P544:
+				ASSIGNK(CP8_P544, CP8_544);
+				endom = 1;
+				break;
+#endif
 #if defined(EP_ENDOM) && FP_PRIME == 638
 			case BN_P638:
 				ASSIGNK(BN_P638, BN_638);
 				endom = 1;
+				pairf = EP_BN;
 				break;
 			case B12_P638:
 				ASSIGNK(B12_P638, B12_638);
 				endom = 1;
+				pairf = EP_B12;
 				break;
 #endif
 #if defined(EP_SUPER) && FP_PRIME == 1536
@@ -736,10 +806,11 @@ void ep_param_set(int param) {
 				break;
 		}
 
-		/* Do not generate warnings. */
+		/* Do not generate warnings when these are disabled. */
 		(void)endom;
 		(void)plain;
 		(void)super;
+		(void)pairf;
 		(void)beta;
 
 		fp_set_dig(g->z, 1);
@@ -754,8 +825,9 @@ void ep_param_set(int param) {
 
 #if defined(EP_ENDOM)
 		if (endom) {
-			ep_curve_set_endom(b, g, r, h, beta, lamb);
+			ep_curve_set_endom(a, b, g, r, h, beta, lamb);
 			core_get()->ep_id = param;
+			core_get()->ep_is_pairf = pairf;
 		}
 #endif
 
@@ -822,9 +894,11 @@ int ep_param_set_any_plain(void) {
 #elif FP_PRIME == 384
 	ep_param_set(NIST_P384);
 #elif FP_PRIME == 511
-	ep_param_set(CURVE_511187);
+	ep_param_set(OT8_P511);
 #elif FP_PRIME == 521
 	ep_param_set(NIST_P521);
+#elif FP_PRIME == 544
+	ep_param_set(CP8_P544);
 #else
 	r = RLC_ERR;
 #endif
@@ -853,14 +927,28 @@ int ep_param_set_any_endom(void) {
 	ep_param_set(B12_P381);
 #elif FP_PRIME == 382
 	ep_param_set(BN_P382);
+#elif FP_PRIME == 446
+#ifdef FP_QNRES
+	ep_param_set(B12_P446);
+#else
+	ep_param_set(BN_P446);
+#endif
 #elif FP_PRIME == 455
 	ep_param_set(B12_P455);
 #elif FP_PRIME == 477
 	ep_param_set(B24_P477);
 #elif FP_PRIME == 508
 	ep_param_set(KSS_P508);
+#elif FP_PRIME == 511
+	ep_param_set(OT8_P511);
+#elif FP_PRIME == 544
+	ep_param_set(CP8_P544);
 #elif FP_PRIME == 638
+#ifdef FP_QNRES
+	ep_param_set(B12_P638);
+#else
 	ep_param_set(BN_P638);
+#endif
 #else
 	r = RLC_ERR;
 #endif
@@ -908,9 +996,15 @@ int ep_param_set_any_pairf(void) {
 	type = EP_DTYPE;
 	degree = 2;
 #elif FP_PRIME == 446
+#ifdef FP_QNRES
+	ep_param_set(B12_P446);
+	type = EP_MTYPE;
+	degree = 2;
+#else
 	ep_param_set(BN_P446);
 	type = EP_DTYPE;
 	degree = 2;
+#endif
 #elif FP_PRIME == 455
 	ep_param_set(B12_P455);
 	type = EP_DTYPE;
@@ -923,10 +1017,24 @@ int ep_param_set_any_pairf(void) {
 	ep_param_set(KSS_P508);
 	type = EP_DTYPE;
 	degree = 3;
+#elif FP_PRIME == 511
+	ep_param_set(OT8_P511);
+	type = EP_DTYPE;
+	degree = 2;
+#elif FP_PRIME == 544
+	ep_param_set(CP8_P544);
+	type = EP_DTYPE;
+	degree = 2;
 #elif FP_PRIME == 638
-	ep_param_set(BN_P638);
+#ifdef FP_QNRES
+	ep_param_set(B12_P638);
 	type = EP_MTYPE;
 	degree = 2;
+#else
+	ep_param_set(BN_P638);
+	type = EP_DTYPE;
+	degree = 2;
+#endif
 #elif FP_PRIME == 1536
 	ep_param_set(SS_P1536);
 	degree = 0;
@@ -1005,8 +1113,14 @@ void ep_param_print(void) {
 		case B12_P381:
 			util_banner("Curve B12-P381:", 0);
 			break;
+		case CP8_P544:
+			util_banner("Curve CP8-P344:", 0);
+			break;
 		case BN_P446:
 			util_banner("Curve BN-P446:", 0);
+			break;
+		case B12_P446:
+			util_banner("Curve B12-P446:", 0);
 			break;
 		case B12_P455:
 			util_banner("Curve B12-P455:", 0);
@@ -1016,6 +1130,9 @@ void ep_param_print(void) {
 			break;
 		case KSS_P508:
 			util_banner("Curve KSS-P508:", 0);
+			break;
+		case OT8_P511:
+			util_banner("Curve OT8-P511:", 0);
 			break;
 		case BN_P638:
 			util_banner("Curve BN-P638:", 0);
@@ -1034,6 +1151,9 @@ void ep_param_print(void) {
 			break;
 		case CURVE_383187:
 			util_banner("Curve Curve383187:", 0);
+			break;
+		case CURVE_511187:
+			util_banner("Curve Curve511187:", 0);
 			break;
 	}
 }
@@ -1061,6 +1181,7 @@ int ep_param_level(void) {
 		case B12_P381:
 		case BN_P382:
 		case BN_P446:
+		case CP8_544:
 		case SS_P1536:
 			return 128;
 		case B12_P455:
@@ -1083,6 +1204,7 @@ int ep_param_embed(void) {
 		case BN_P256:
 		case BN_P382:
 		case BN_P446:
+		case B12_P446:
 		case BN_P638:
 		case B12_P381:
 		case B12_P455:
@@ -1090,6 +1212,8 @@ int ep_param_embed(void) {
 			return 12;
 		case SS_P1536:
 			return 2;
+		case OT8_P511:
+			return 8;
 	}
 	return 0;
 }

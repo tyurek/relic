@@ -24,33 +24,27 @@
 /**
  * @file
  *
- * Implementation of the low-level multiple precision addition and subtraction
- * functions.
+ * Implementation of the low-level extension field modular reduction functions.
  *
- * @ingroup bn
+ * @ingroup fpx
  */
 
-#include <gmp.h>
-
-#include "relic_bn.h"
-#include "relic_bn_low.h"
+#include "relic_core.h"
+#include "relic_fp_low.h"
+#include "relic_fpx_low.h"
 
 /*============================================================================*/
 /* Public definitions                                                         */
 /*============================================================================*/
 
-dig_t bn_add1_low(dig_t *c, const dig_t *a, dig_t digit, int size) {
-	return mpn_add_1(c, a, size, digit);
-}
-
-dig_t bn_addn_low(dig_t *c, const dig_t *a, const dig_t *b, int size) {
-	return mpn_add_n(c, a, b, size);
-}
-
-dig_t bn_sub1_low(dig_t *c, const dig_t *a, dig_t digit, int size) {
-	return mpn_sub_1(c, a, size, digit);
-}
-
-dig_t bn_subn_low(dig_t *c, const dig_t *a, const dig_t *b, int size) {
-	return mpn_sub_n(c, a, b, size);
+void fp3_rdcn_low(fp3_t c, dv3_t a) {
+#if FP_RDC == MONTY
+	fp_rdcn_low(c[0], a[0]);
+	fp_rdcn_low(c[1], a[1]);
+	fp_rdcn_low(c[2], a[2]);
+#else
+	fp_rdc(c[0], a[0]);
+	fp_rdc(c[1], a[1]);
+	fp_rdc(c[2], a[2]);
+#endif
 }

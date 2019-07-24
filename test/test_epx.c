@@ -859,12 +859,14 @@ static int simultaneous(void) {
 			ep2_mul(p, p, k);
 			ep2_mul(q, q, l);
 			ep2_add(q, q, p);
+			ep2_norm(q, q);
 			TEST_ASSERT(ep2_cmp(q, r) == RLC_EQ, end);
 			bn_neg(k, k);
 			ep2_mul_sim(r, p, k, q, l);
 			ep2_mul(p, p, k);
 			ep2_mul(q, q, l);
 			ep2_add(q, q, p);
+			ep2_norm(q, q);
 			TEST_ASSERT(ep2_cmp(q, r) == RLC_EQ, end);
 			bn_neg(l, l);
 			ep2_mul_sim(r, p, k, q, l);
@@ -892,12 +894,14 @@ static int simultaneous(void) {
 			ep2_mul(p, p, k);
 			ep2_mul(q, q, l);
 			ep2_add(q, q, p);
+			ep2_norm(q, q);
 			TEST_ASSERT(ep2_cmp(q, r) == RLC_EQ, end);
 			bn_neg(k, k);
 			ep2_mul_sim_basic(r, p, k, q, l);
 			ep2_mul(p, p, k);
 			ep2_mul(q, q, l);
 			ep2_add(q, q, p);
+			ep2_norm(q, q);
 			TEST_ASSERT(ep2_cmp(q, r) == RLC_EQ, end);
 			bn_neg(l, l);
 			ep2_mul_sim_basic(r, p, k, q, l);
@@ -926,12 +930,14 @@ static int simultaneous(void) {
 			ep2_mul(p, p, k);
 			ep2_mul(q, q, l);
 			ep2_add(q, q, p);
+			ep2_norm(q, q);
 			TEST_ASSERT(ep2_cmp(q, r) == RLC_EQ, end);
 			bn_neg(k, k);
 			ep2_mul_sim_trick(r, p, k, q, l);
 			ep2_mul(p, p, k);
 			ep2_mul(q, q, l);
 			ep2_add(q, q, p);
+			ep2_norm(q, q);
 			TEST_ASSERT(ep2_cmp(q, r) == RLC_EQ, end);
 			bn_neg(l, l);
 			ep2_mul_sim_trick(r, p, k, q, l);
@@ -960,12 +966,14 @@ static int simultaneous(void) {
 			ep2_mul(p, p, k);
 			ep2_mul(q, q, l);
 			ep2_add(q, q, p);
+			ep2_norm(q, q);
 			TEST_ASSERT(ep2_cmp(q, r) == RLC_EQ, end);
 			bn_neg(k, k);
 			ep2_mul_sim_inter(r, p, k, q, l);
 			ep2_mul(p, p, k);
 			ep2_mul(q, q, l);
 			ep2_add(q, q, p);
+			ep2_norm(q, q);
 			TEST_ASSERT(ep2_cmp(q, r) == RLC_EQ, end);
 			bn_neg(l, l);
 			ep2_mul_sim_inter(r, p, k, q, l);
@@ -994,12 +1002,14 @@ static int simultaneous(void) {
 			ep2_mul(p, p, k);
 			ep2_mul(q, q, l);
 			ep2_add(q, q, p);
+			ep2_norm(q, q);
 			TEST_ASSERT(ep2_cmp(q, r) == RLC_EQ, end);
 			bn_neg(k, k);
 			ep2_mul_sim_joint(r, p, k, q, l);
 			ep2_mul(p, p, k);
 			ep2_mul(q, q, l);
 			ep2_add(q, q, p);
+			ep2_norm(q, q);
 			TEST_ASSERT(ep2_cmp(q, r) == RLC_EQ, end);
 			bn_neg(l, l);
 			ep2_mul_sim_joint(r, p, k, q, l);
@@ -1203,7 +1213,6 @@ int main(void) {
 
 	ep_param_print();
 
-	util_banner("Sextic twist:", 0);
 	util_banner("Utilities:", 1);
 
 	if (memory() != RLC_OK) {

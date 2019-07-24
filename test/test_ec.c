@@ -63,7 +63,7 @@ static int memory(void) {
 int util(void) {
 	int l, code = RLC_ERR;
 	ec_t a, b, c;
-	uint8_t bin[2 * FC_BYTES + 1];
+	uint8_t bin[2 * RLC_FC_BYTES + 1];
 
 	ec_null(a);
 	ec_null(b);
@@ -504,12 +504,14 @@ static int simultaneous(void) {
 			ec_mul(p, p, k);
 			ec_mul(q, q, l);
 			ec_add(q, q, p);
+			ec_norm(q, q);
 			TEST_ASSERT(ec_cmp(q, r) == RLC_EQ, end);
 			bn_neg(k, k);
 			ec_mul_sim(r, p, k, q, l);
 			ec_mul(p, p, k);
 			ec_mul(q, q, l);
 			ec_add(q, q, p);
+			ec_norm(q, q);
 			TEST_ASSERT(ec_cmp(q, r) == RLC_EQ, end);
 			bn_neg(l, l);
 			ec_mul_sim(r, p, k, q, l);
